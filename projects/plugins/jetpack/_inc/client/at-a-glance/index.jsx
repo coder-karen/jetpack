@@ -29,15 +29,22 @@ import QuerySitePlugins from 'components/data/query-site-plugins';
 import QuerySite from 'components/data/query-site';
 import QueryScanStatus from 'components/data/query-scan-status';
 import {
+	getApiNonce,
+	getApiRootUrl,
+	getPartnerCoupon,
+	getPluginBaseUrl,
+	getRegistrationNonce,
+	getTracksUserData,
 	isMultisite,
 	userCanManageModules,
 	userCanManagePlugins,
 	userCanViewStats,
 	userIsSubscriber,
 } from 'state/initial-state';
-import { isOfflineMode, hasConnectedOwner } from 'state/connection';
+import { isOfflineMode, hasConnectedOwner, getConnectionStatus } from 'state/connection';
 import { getModuleOverride } from 'state/modules';
 import { getScanStatus, isFetchingScanStatus } from 'state/scan';
+import { PartnerCouponRedeem } from '@automattic/jetpack-partner-coupon';
 
 const renderPairs = layout =>
 	layout.map( ( item, layoutIndex ) => [
@@ -190,11 +197,26 @@ class AtAGlance extends Component {
 				} );
 			}
 
+			const redeemPartnerCoupon = this.props.partnerCoupon && (
+				<PartnerCouponRedeem
+					apiNonce={ this.props.apiNonce }
+					registrationNonce={ this.props.registrationNonce }
+					apiRoot={ this.props.apiRoot }
+					assetBaseUrl={ this.props.pluginBaseUrl }
+					connectionStatus={ this.props.connectionStatus }
+					partnerCoupon={ this.props.partnerCoupon }
+					siteRawUrl={ this.props.siteRawUrl }
+					tracksUserData={ !! this.props.tracksUserData }
+					analytics={ analytics }
+				/>
+			);
+
 			return (
 				<div className="jp-at-a-glance">
 					<QuerySitePlugins />
 					<QuerySite />
 					<QueryScanStatus />
+					{ redeemPartnerCoupon }
 					<DashStats { ...settingsProps } { ...urls } />
 					{ renderPairs( pairs ) }
 					{ connections }
@@ -241,5 +263,12 @@ export default connect( state => {
 		scanStatus: getScanStatus( state ),
 		fetchingScanStatus: isFetchingScanStatus( state ),
 		hasConnectedOwner: hasConnectedOwner( state ),
+		connectionStatus: getConnectionStatus( state ),
+		partnerCoupon: getPartnerCoupon( state ),
+		pluginBaseUrl: getPluginBaseUrl( state ),
+		tracksUserData: getTracksUserData( state ),
+		apiRoot: getApiRootUrl( state ),
+		apiNonce: getApiNonce( state ),
+		registrationNonce: getRegistrationNonce( state ),
 	};
 } )( withModuleSettingsFormHelpers( AtAGlance ) );
