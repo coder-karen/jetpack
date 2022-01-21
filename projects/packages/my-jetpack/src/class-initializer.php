@@ -12,6 +12,7 @@ use Automattic\Jetpack\Assets;
 use Automattic\Jetpack\Connection\Client as Client;
 use Automattic\Jetpack\Connection\Initial_State as Connection_Initial_State;
 use Automattic\Jetpack\Connection\Rest_Authentication as Connection_Rest_Authentication;
+use Automattic\Jetpack\JITMS\JITM as JITM;
 use Automattic\Jetpack\Status as Status;
 
 /**
@@ -50,6 +51,9 @@ class Initializer {
 		);
 
 		add_action( 'load-' . $page_suffix, array( __CLASS__, 'admin_init' ) );
+
+		// Sets up JITMS.
+		JITM::configure();
 
 		/**
 		 * Fires after the My Jetpack package is initialized

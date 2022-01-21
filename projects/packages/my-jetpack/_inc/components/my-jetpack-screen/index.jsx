@@ -24,6 +24,7 @@ export default function MyJetpackScreen() {
 	return (
 		<div className="jp-my-jetpack-screen">
 			<AdminPage>
+				<div id="jp-admin-notices" />
 				<AdminSectionHero>
 					<Row>
 						<Col lg={ 12 } md={ 8 } sm={ 4 }>
