@@ -9,7 +9,7 @@
 
 In this release, we've continued to make progress towards a Jetpack Search plugin. This involved making changes to the Search feature as it is packaged in the Jetpack plugin, so it's worth testing it still works as advertized. Try the following:
 
-1. Purchase a Search plan.
+1. Purchase a [Search plan](https://jetpack.com/upgrade/search/).
 2. Go to Jetpack > Settings > Performance and toggle the feature on and off.
 3. Go to Jetpack > Search and toggle the feature on and off.
 4. Click the link there to go and customize the search page.
