@@ -58,4 +58,4 @@ Contributions have been and continue to be made by dozens of other Automattician
 
 Our _awesome_ happiness engineers are @a8ck3n, @aicee, @bindlegirl, @bizanimesh, @brucea8c, @cena, @coder-karen, @danjjohnson, @dericleeyy, @dkmyta, @gaurav1984, @jenhooks, @JenSwish, @julsyd, @kristinaplauche, @lizthefair, @madhattermattic, @mbhthompson, @mzakariya, @pranali333, @rcowles, @snowmads, @stefmattana, and @tmmbecker.
 
-Interested in working on awesome open-source code all day? [Join us](https://automattic.com/work-with-us/)!
+Interested in working on fantastic open-source code all day? [Join us](https://automattic.com/work-with-us/)!
