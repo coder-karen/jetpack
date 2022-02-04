@@ -38,7 +38,7 @@ Thank you for thinking about contributing to Jetpack! If you're unsure of anythi
 
 To clarify these expectations, Jetpack has adopted the code of conduct defined by the Contributor Covenant. It can be read in full [here](CODE-OF-CONDUCT.md).
 
-## Security
+## Securitys
 
 Need to report a security vulnerability? Go to [https://automattic.com/security/](https://automattic.com/security/) or directly to our security bug bounty site [https://hackerone.com/automattic](https://hackerone.com/automattic).
 
