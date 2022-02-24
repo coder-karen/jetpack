@@ -2,6 +2,34 @@
 
 ### This is a list detailing changes for the Jetpack RNA Connection Component releases.
 
+## 0.16.0 - 2022-02-22
+### Changed
+- Bump package version.
+- Connection: Update ConnectionStatusCard to match figma
+- Disconnect dialog changes to cope with asynchronous data loading
+- Updated package dependencies.
+
+### Fixed
+- Connection: Fix ConnectionStatusCard prop
+
+## 0.15.1 - 2022-02-09
+### Added
+- Connection: Expose hasConnectedOwner in useConnection hook
+- Re organize components stories by project/name
+
+### Changed
+- Updated package dependencies
+
+## 0.15.0 - 2022-02-02
+### Added
+- Added user click tracking to disconnect dialog modal.
+
+### Changed
+- Updated package dependencies.
+
+### Fixed
+- Fix access to display_name property in connection status card.
+
 ## 0.14.0 - 2022-01-25
 ### Changed
 - Enforces the usage of initial state

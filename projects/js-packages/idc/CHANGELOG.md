@@ -2,6 +2,21 @@
 
 ### This is a list detailing changes for the Jetpack RNA IDC package releases.
 
+## 0.9.3 - 2022-02-22
+### Added
+- Add blog ID to event tracking.
+
+### Changed
+- Updated package dependencies.
+
+## 0.9.2 - 2022-02-09
+### Changed
+- Updated package dependencies
+
+## 0.9.1 - 2022-02-02
+### Changed
+- Updated package dependencies.
+
 ## 0.9.0 - 2022-01-25
 ### Added
 - Additional package customization parameters.

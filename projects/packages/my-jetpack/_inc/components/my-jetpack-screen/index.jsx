@@ -20,8 +20,9 @@ import ConnectionsSection from '../connections-section';
 import PlansSection from '../plans-section';
 import ProductCardsSection from '../product-cards-section';
 import useAnalytics from '../../hooks/use-analytics';
-import useNoticeWatcher, { useGlobalNotice } from '../../hooks/use-notice';
+import useGlobalNotice from '../../hooks/use-notice';
 import useMyJetpackConnection from '../../hooks/use-my-jetpack-connection';
+import useConnectionWatcher from '../../hooks/use-connection-watcher';
 import styles from './styles.module.scss';
 
 const GlobalNotice = ( { message, options, clean } ) => {
@@ -35,9 +36,9 @@ const GlobalNotice = ( { message, options, clean } ) => {
 	};
 
 	return (
-		<Notice { ...options } onRemove={ clean }>
+		<Notice isDismissible={ false } { ...options } onRemove={ clean } className={ styles.notice }>
 			{ iconMap?.[ options.status ] && <Icon icon={ iconMap[ options.status ] } /> }
-			<div className="components-notice__message-content">{ message }</div>
+			<div className={ styles.message }>{ message }</div>
 		</Notice>
 	);
 };
@@ -48,19 +49,17 @@ const GlobalNotice = ( { message, options, clean } ) => {
  * @returns {object} The MyJetpackScreen component.
  */
 export default function MyJetpackScreen() {
-	useNoticeWatcher();
+	useConnectionWatcher();
 	const { message, options, clean } = useGlobalNotice();
 
-	const {
-		tracks: { recordEvent },
-	} = useAnalytics();
+	const { recordEvent } = useAnalytics();
 
 	useEffect( () => {
 		recordEvent( 'jetpack_myjetpack_page_view' );
 	}, [ recordEvent ] );
 
 	// No render when site is not connected.
-	const { isSiteConnected } = useMyJetpackConnection( { redirect: true } );
+	const { isSiteConnected } = useMyJetpackConnection();
 
 	if ( ! isSiteConnected ) {
 		return null;
@@ -73,7 +72,7 @@ export default function MyJetpackScreen() {
 					<Col sm={ 4 } md={ 7 } lg={ 6 }>
 						<h1 className={ styles.heading }>
 							{ __(
-								'Manage your Jetpack plan and products all in one place',
+								'Manage your Jetpack',
 								'jetpack-my-jetpack'
 							) }
 						</h1>

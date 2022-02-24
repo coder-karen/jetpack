@@ -17,16 +17,14 @@ class Products {
 	 * @return array Jetpack products on the site and their availability.
 	 */
 	public static function get_products() {
-		return array(
-			'anti-spam'  => self::get_anti_spam_data(),
-			'backup'     => self::get_backup_data(),
-			'boost'      => self::get_boost_data(),
-			'scan'       => self::get_scan_data(),
-			'search'     => self::get_search_data(),
-			'videopress' => self::get_videopress_data(),
-			'crm'        => self::get_crm_data(),
-			'extras'     => self::get_extras_data(),
-		);
+		$names    = self::get_product_names();
+		$products = array();
+		foreach ( $names as $name ) {
+			$method_name       = 'get_' . str_replace( '-', '_', $name ) . '_data';
+			$products[ $name ] = call_user_func( array( __CLASS__, $method_name ) );
+		}
+
+		return $products;
 	}
 
 	/**
@@ -50,7 +48,17 @@ class Products {
 	 * @return array Product names array.
 	 */
 	public static function get_product_names() {
-		return array_keys( self::get_products() );
+		return array(
+			'anti-spam',
+			'backup',
+			'boost',
+			'scan',
+			'search',
+			'security',
+			'videopress',
+			'crm',
+			'extras',
+		);
 	}
 
 	/**
@@ -108,12 +116,7 @@ class Products {
 	 * @return array Object with infromation about the product.
 	 */
 	public static function get_anti_spam_data() {
-		return array(
-			'slug'        => 'anti-spam',
-			'description' => __( 'Stop comment and form spam', 'jetpack-my-jetpack' ),
-			'name'        => __( 'Anti-spam', 'jetpack-my-jetpack' ),
-			'status'      => 'inactive',
-		);
+		return Products\Anti_Spam::get_info();
 	}
 
 	/**
@@ -149,12 +152,7 @@ class Products {
 	 * @return array Object with infromation about the product.
 	 */
 	public static function get_extras_data() {
-		return array(
-			'slug'        => 'extras',
-			'description' => __( 'Basic tools for a successful site', 'jetpack-my-jetpack' ),
-			'name'        => __( 'Extras', 'jetpack-my-jetpack' ),
-			'status'      => 'active',
-		);
+		return Products\Extras::get_info();
 	}
 
 	/**
@@ -173,6 +171,15 @@ class Products {
 	 */
 	public static function get_search_data() {
 		return Products\Search::get_info();
+	}
+
+	/**
+	 * Returns information about the Security product
+	 *
+	 * @return array Object with infromation about the product.
+	 */
+	public static function get_security_data() {
+		return Products\Security::get_info();
 	}
 
 	/**
