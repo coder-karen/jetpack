@@ -458,6 +458,7 @@ class Test_Status extends TestCase {
 	 */
 	public function test_jetpack_get_site_suffix( $site, $expected ) {
 		Functions\when( 'home_url' )->justReturn( $this->site_url );
+		Functions\when( 'get_option' )->justReturn();
 		$suffix = $this->status_obj->get_site_suffix( $site );
 
 		$this->assertSame( $expected, $suffix );
@@ -497,6 +498,10 @@ class Test_Status extends TestCase {
 			'double_domain'    => array(
 				'https://example.org/http://example.com',
 				'example.org::http:::::example.com',
+			),
+			'trailing_slash'   => array(
+				'https://example.org/',
+				'example.org',
 			),
 		);
 	}

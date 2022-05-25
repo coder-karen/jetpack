@@ -11,6 +11,8 @@ import { ProgressBar } from '@automattic/components';
  */
 import { PromptLayout } from '../prompt-layout';
 import { CheckboxAnswer } from '../checkbox-answer';
+import { DEFAULT_ILLUSTRATION } from '../../constants';
+import DiscountCard from '../../sidebar/discount-card';
 import Button from 'components/button';
 import analytics from 'lib/analytics';
 import { getSiteTitle } from 'state/initial-state';
@@ -19,13 +21,13 @@ import {
 	getNextRoute,
 	saveRecommendationsData as saveRecommendationsDataAction,
 	updateRecommendationsStep as updateRecommendationsStepAction,
+	isProductSuggestionsAvailable,
 } from 'state/recommendations';
 
 /**
  * Style dependencies
  */
 import './style.scss';
-
 const SiteTypeQuestionComponent = props => {
 	const {
 		answers,
@@ -33,6 +35,7 @@ const SiteTypeQuestionComponent = props => {
 		saveRecommendationsData,
 		siteTitle,
 		updateRecommendationsStep,
+		canShowProductSuggestions,
 	} = props;
 
 	useEffect( () => {
@@ -80,7 +83,7 @@ const SiteTypeQuestionComponent = props => {
 					) }
 				/>
 			</div>
-			<Button primary href={ nextRoute } onClick={ onContinueClick }>
+			<Button primary rna href={ nextRoute } onClick={ onContinueClick }>
 				{ __( 'Continue', 'jetpack' ) }
 			</Button>
 			<div className="jp-recommendations-site-type-question__continue-description">
@@ -104,7 +107,9 @@ const SiteTypeQuestionComponent = props => {
 				'jetpack'
 			) }
 			answer={ answerSection }
-			illustrationPath="recommendations/site-type-illustration.jpg"
+			sidebarCard={ canShowProductSuggestions ? <DiscountCard /> : null }
+			illustration={ DEFAULT_ILLUSTRATION }
+			illustrationClassName="jp-recommendations-site-type__illustration"
 		/>
 	);
 };
@@ -119,6 +124,7 @@ export const SiteTypeQuestion = connect(
 			store: getDataByKey( state, 'site-type-store' ),
 			other: getDataByKey( state, 'site-type-other' ),
 		},
+		canShowProductSuggestions: isProductSuggestionsAvailable( state ),
 	} ),
 	dispatch => ( {
 		updateRecommendationsStep: step => dispatch( updateRecommendationsStepAction( step ) ),

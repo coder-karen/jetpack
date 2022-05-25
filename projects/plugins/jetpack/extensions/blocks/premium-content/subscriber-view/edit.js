@@ -10,16 +10,19 @@ import { compose } from '@wordpress/compose';
  * Internal dependencies
  */
 import Context from '../_inc/context';
+import { usePremiumContentAllowedBlocks } from '../_inc/premium';
 
 function Edit( { hasInnerBlocks } ) {
+	const allowedInnerBlocks = usePremiumContentAllowedBlocks();
+
 	return (
 		<Context.Consumer>
-			{ ( { selectedTab, stripeNudge } ) => (
+			{ ( { selectedTab } ) => (
 				/** @see https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/no-static-element-interactions.md#case-the-event-handler-is-only-being-used-to-capture-bubbled-events */
 				// eslint-disable-next-line
 				<div hidden={ selectedTab.id === 'wall' } className={ selectedTab.className }>
-					{ stripeNudge }
 					<InnerBlocks
+						allowedBlocks={ allowedInnerBlocks }
 						renderAppender={ ! hasInnerBlocks && InnerBlocks.ButtonBlockAppender }
 						templateLock={ false }
 						templateInsertUpdatesSelection={ false }

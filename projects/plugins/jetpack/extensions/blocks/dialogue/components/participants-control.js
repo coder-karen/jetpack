@@ -238,10 +238,7 @@ export function SpeakerEditControl( {
 
 		// SHow Autocomplete only when
 		// adding a selecting a/the participant.
-		if (
-			editingMode !== EDIT_MODE_ADDING &&
-			editingMode !== EDIT_MODE_SELECTING
-		) {
+		if ( editingMode !== EDIT_MODE_ADDING && editingMode !== EDIT_MODE_SELECTING ) {
 			return [];
 		}
 
@@ -263,7 +260,6 @@ export function SpeakerEditControl( {
 				withoutInteractiveFormatting={ true }
 				onChange={ onChangeHandler }
 				placeholder={ __( 'Speaker', 'jetpack' ) }
-				keepPlaceholderOnFocus={ true }
 				onSplit={ () => {} }
 				onReplace={ replaceValue => {
 					setTimeout( () => transcriptRef?.current?.focus(), 10 );

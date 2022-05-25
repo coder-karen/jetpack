@@ -41,6 +41,7 @@ import ResumableUpload from './resumable-upload';
 import SeekbarColorSettings from './seekbar-color-settings';
 import TracksEditor from './tracks-editor';
 import { VideoPressBlockProvider } from './components';
+import { VIDEO_PRIVACY } from './constants';
 
 const VIDEO_POSTER_ALLOWED_MEDIA_TYPES = [ 'image' ];
 
@@ -57,8 +58,10 @@ const VideoPressEdit = CoreVideoEdit =>
 				lastRequestedMediaId: null,
 				isUpdatingRating: false,
 				allowDownload: null,
+				privacySetting: VIDEO_PRIVACY.SITE_DEFAULT,
 				isUpdatingAllowDownload: false,
 				fileForUpload: props.fileForImmediateUpload,
+				isUpdatingIsPrivate: false,
 			};
 			this.posterImageButton = createRef();
 			this.previewCacheReloadTimer = null;
@@ -101,6 +104,11 @@ const VideoPressEdit = CoreVideoEdit =>
 			const media = await this.requestMedia( id );
 			let rating = get( media, 'jetpack_videopress.rating' );
 			const allowDownload = get( media, 'jetpack_videopress.allow_download' );
+			const privacySetting = get(
+				media,
+				'jetpack_videopress.privacy_setting',
+				VIDEO_PRIVACY.SITE_DEFAULT
+			);
 
 			if ( rating ) {
 				// X-18 was previously supported but is now removed to better comply with our TOS.
@@ -112,6 +120,10 @@ const VideoPressEdit = CoreVideoEdit =>
 
 			if ( 'undefined' !== typeof allowDownload ) {
 				this.setState( { allowDownload: !! allowDownload } );
+			}
+
+			if ( 'undefined' !== typeof privacySetting ) {
+				this.setState( { privacySetting } );
 			}
 		};
 
@@ -232,6 +244,7 @@ const VideoPressEdit = CoreVideoEdit =>
 			}
 
 			this.setState( { media, lastRequestedMediaId: id } );
+
 			return media;
 		};
 
@@ -307,6 +320,19 @@ const VideoPressEdit = CoreVideoEdit =>
 				: null;
 		}
 
+		getPrivacySettingHelp = selectedSetting => {
+			const privacySetting = parseInt( selectedSetting, 10 );
+			if ( VIDEO_PRIVACY.PRIVATE === privacySetting ) {
+				return __( 'Restrict views to members of this site', 'jetpack' );
+			}
+
+			if ( VIDEO_PRIVACY.PUBLIC === privacySetting ) {
+				return __( 'Video can be viewed by anyone', 'jetpack' );
+			}
+
+			return __( 'Follow the site privacy setting', 'jetpack' );
+		};
+
 		renderControlLabelWithTooltip( label, tooltipText ) {
 			return (
 				<Tooltip text={ tooltipText } position="top">
@@ -343,6 +369,17 @@ const VideoPressEdit = CoreVideoEdit =>
 				() => this.setState( { isUpdatingAllowDownload: true, allowDownload } ),
 				() => this.setState( { allowDownload: originalValue } ),
 				() => this.setState( { isUpdatingAllowDownload: false } )
+			);
+		};
+
+		onChangePrivacySetting = privacySetting => {
+			const originalValue = this.state.privacySetting;
+
+			this.updateMetaApiCall(
+				{ privacy_setting: privacySetting },
+				() => this.setState( { isUpdatingPrivacySetting: true, privacySetting } ),
+				() => this.setState( { privacySetting: originalValue } ),
+				() => this.setState( { isUpdatingPrivacySetting: false } )
 			);
 		};
 
@@ -397,7 +434,9 @@ const VideoPressEdit = CoreVideoEdit =>
 				interactive,
 				rating,
 				allowDownload,
+				privacySetting,
 				isUpdatingAllowDownload,
+				isUpdatingPrivacySetting,
 			} = this.state;
 
 			const {
@@ -516,7 +555,7 @@ const VideoPressEdit = CoreVideoEdit =>
 										allowedTypes={ VIDEO_POSTER_ALLOWED_MEDIA_TYPES }
 										render={ ( { open } ) => (
 											<Button
-												isDefault
+												variant="secondary"
 												onClick={ open }
 												ref={ this.posterImageButton }
 												aria-describedby={ videoPosterDescription }
@@ -541,7 +580,7 @@ const VideoPressEdit = CoreVideoEdit =>
 											: __( 'There is no poster image currently selected', 'jetpack' ) }
 									</p>
 									{ !! poster && (
-										<Button onClick={ this.onRemovePoster } isLink isDestructive>
+										<Button onClick={ this.onRemovePoster } variant="link" isDestructive>
 											{ __( 'Remove Poster Image', 'jetpack' ) }
 										</Button>
 									) }
@@ -596,6 +635,27 @@ const VideoPressEdit = CoreVideoEdit =>
 								checked={ allowDownload }
 								disabled={ isFetchingMedia || isUpdatingAllowDownload }
 							/>
+							<SelectControl
+								label={ __( 'Video Privacy', 'jetpack' ) }
+								help={ this.getPrivacySettingHelp( privacySetting ) }
+								onChange={ this.onChangePrivacySetting }
+								value={ privacySetting }
+								options={ [
+									{
+										value: VIDEO_PRIVACY.SITE_DEFAULT,
+										label: _x( 'Site Default', 'VideoPress privacy setting', 'jetpack' ),
+									},
+									{
+										value: VIDEO_PRIVACY.PUBLIC,
+										label: _x( 'Public', 'VideoPress privacy setting', 'jetpack' ),
+									},
+									{
+										value: VIDEO_PRIVACY.PRIVATE,
+										label: _x( 'Private', 'VideoPress privacy setting', 'jetpack' ),
+									},
+								] }
+								disabled={ isFetchingMedia || isUpdatingPrivacySetting }
+							/>
 						</PanelBody>
 					</InspectorControls>
 				</Fragment>
@@ -606,18 +666,35 @@ const VideoPressEdit = CoreVideoEdit =>
 			};
 
 			// Handle Media Library selection
-			const mediaItemSelected = item => {
-				if ( item && item.videopress_guid ) {
-					this.props.setAttributes( { guid: item.videopress_guid } );
-				} else {
-					this.props.setAttributes( { src: item.url } );
+			// Same as core video block media selection while adding video guid to attributes
+			const mediaItemSelected = media => {
+				if ( ! media || ! media.url ) {
+					// In this case there was an error
+					// previous attributes should be removed
+					// because they may be temporary blob urls.
+					setAttributes( {
+						src: undefined,
+						id: undefined,
+						poster: undefined,
+					} );
+					return;
+				}
+
+				this.props.setAttributes( {
+					src: media.url,
+					id: media.id,
+					poster: media.image?.src !== media.icon ? media.image?.src : undefined,
+				} );
+
+				if ( media.videopress_guid ) {
+					this.props.setAttributes( { guid: media.videopress_guid } );
 				}
 			};
 
-			const uploadFinished = ( videoGuid = null ) => {
+			const uploadFinished = ( { mediaId, guid: videoGuid, src: videoSrc } ) => {
 				this.setState( { fileForUpload: null } );
-				if ( videoGuid ) {
-					setAttributes( { guid: videoGuid } );
+				if ( mediaId && videoGuid && videoSrc ) {
+					setAttributes( { id: mediaId, guid: videoGuid, src: videoSrc } );
 				}
 			};
 
@@ -719,16 +796,8 @@ const VideoPressEdit = CoreVideoEdit =>
 // The actual, final rendered video player markup
 // In a separate function component so that `useBlockProps` could be called.
 const VpBlock = props => {
-	const {
-		html,
-		scripts,
-		interactive,
-		caption,
-		isSelected,
-		hideOverlay,
-		attributes,
-		setAttributes,
-	} = props;
+	let { scripts } = props;
+	const { html, interactive, caption, isSelected, hideOverlay, attributes, setAttributes } = props;
 
 	const { align, className, videoPressClassNames, maxWidth } = attributes;
 
@@ -750,6 +819,21 @@ const VpBlock = props => {
 
 		setAttributes( { maxWidth: newMaxWidth } );
 	};
+
+	if ( typeof scripts !== 'object' ) {
+		scripts = [];
+	}
+
+	if ( window.videopressAjax ) {
+		const videopresAjaxURLBlob = new Blob(
+			[ `var videopressAjax = ${ JSON.stringify( window.videopressAjax ) };` ],
+			{
+				type: 'text/javascript',
+			}
+		);
+
+		scripts.push( URL.createObjectURL( videopresAjaxURLBlob ), window.videopressAjax.bridgeUrl );
+	}
 
 	return (
 		<figure { ...blockProps }>
@@ -827,6 +911,7 @@ export default createHigherOrderComponent(
 				seekbarPlayedColor,
 				useAverageColor,
 			} );
+
 			const preview = !! url && getEmbedPreview( url );
 
 			const isFetchingEmbedPreview = !! url && isRequestingEmbedPreview( url );

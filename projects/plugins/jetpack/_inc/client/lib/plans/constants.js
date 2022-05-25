@@ -16,6 +16,7 @@ export const PLAN_PREMIUM_MONTHLY = 'value_bundle-monthly';
 export const PLAN_PERSONAL = 'personal-bundle';
 export const PLAN_PERSONAL_2_YEARS = 'personal-bundle-2y';
 export const PLAN_PERSONAL_MONTHLY = 'personal-bundle-monthly';
+export const PLAN_PRO = 'pro-plan';
 export const PLAN_FREE = 'free_plan';
 export const PLAN_JETPACK_FREE = 'jetpack_free';
 export const PLAN_JETPACK_PREMIUM = 'jetpack_premium';
@@ -83,6 +84,12 @@ export const JETPACK_LEGACY_PLANS = [
 	PLAN_JETPACK_BUSINESS_MONTHLY,
 	PLAN_JETPACK_PERSONAL_MONTHLY,
 ];
+export const JETPACK_LEGACY_PLANS_WITH_SECURITY_FEATURES = [
+	PLAN_JETPACK_PREMIUM,
+	PLAN_JETPACK_BUSINESS,
+	PLAN_JETPACK_PREMIUM_MONTHLY,
+	PLAN_JETPACK_BUSINESS_MONTHLY,
+];
 export const JETPACK_BUNDLES = [
 	PLAN_JETPACK_SECURITY_T1_YEARLY,
 	PLAN_JETPACK_SECURITY_T1_MONTHLY,
@@ -111,6 +118,28 @@ export const JETPACK_PLANS_WITH_BACKUP = [
 	PLAN_JETPACK_COMPLETE_MONTHLY,
 ];
 
+export const JETPACK_PLANS_WITH_ANTI_SPAM = [
+	PLAN_JETPACK_PREMIUM,
+	PLAN_JETPACK_BUSINESS,
+	PLAN_JETPACK_PERSONAL,
+	PLAN_JETPACK_PREMIUM_MONTHLY,
+	PLAN_JETPACK_BUSINESS_MONTHLY,
+	PLAN_JETPACK_PERSONAL_MONTHLY,
+	PLAN_JETPACK_SECURITY_T1_YEARLY,
+	PLAN_JETPACK_SECURITY_T1_MONTHLY,
+	PLAN_JETPACK_SECURITY_T2_YEARLY,
+	PLAN_JETPACK_SECURITY_T2_MONTHLY,
+	PLAN_JETPACK_COMPLETE,
+	PLAN_JETPACK_COMPLETE_MONTHLY,
+
+	// DEPRECATED: Daily and Real-time variations will soon be retired.
+	// Remove after all customers are migrated to new products.
+	PLAN_JETPACK_SECURITY_DAILY,
+	PLAN_JETPACK_SECURITY_DAILY_MONTHLY,
+	PLAN_JETPACK_SECURITY_REALTIME,
+	PLAN_JETPACK_SECURITY_REALTIME_MONTHLY,
+];
+
 export const JETPACK_SECURITY_BUNDLES = [
 	PLAN_JETPACK_SECURITY_T1_YEARLY,
 	PLAN_JETPACK_SECURITY_T1_MONTHLY,
@@ -124,6 +153,7 @@ export const JETPACK_SECURITY_BUNDLES = [
 	PLAN_ECOMMERCE,
 	PLAN_ECOMMERCE_2_YEARS,
 	PLAN_ECOMMERCE_MONTHLY,
+	PLAN_PRO,
 
 	// VIP.
 	PLAN_VIP,
@@ -259,13 +289,13 @@ export function isNew( plan ) {
 }
 
 /**
- * Determines if a plan includes Jetpack Backup.
+ * Determines if a plan includes Jetpack Anti-Spam.
  *
  * @param {string} plan - The plan slug
- * @returns {boolean} True if the plan includes Jetpack Backup
+ * @returns {boolean} True if the plan includes Jetpack Anti-Spam
  */
-export function isJetpackPlanWithBackup( plan ) {
-	return includes( JETPACK_PLANS_WITH_BACKUP, plan );
+export function isJetpackPlanWithAntiSpam( plan ) {
+	return includes( JETPACK_PLANS_WITH_ANTI_SPAM, plan );
 }
 
 /**
@@ -327,6 +357,16 @@ export function isJetpackLegacyPlan( product ) {
 	return JETPACK_LEGACY_PLANS.includes( product );
 }
 
+/**
+ * Identify legacy plans that contain features comparable to a security bundle
+ *
+ * @param {string} product - The product id.
+ * @returns {boolean} True if the product is a legacy Jetpack plan with security features, false otherwise.
+ */
+export function isSecurityComparableJetpackLegacyPlan( product ) {
+	return JETPACK_LEGACY_PLANS_WITH_SECURITY_FEATURES.includes( product );
+}
+
 export function getJetpackProductUpsellByFeature( feature ) {
 	return JETPACK_FEATURE_PRODUCT_UPSELL_MAP[ feature ];
 }
@@ -356,6 +396,7 @@ export function getPlanClass( plan ) {
 		case PLAN_ECOMMERCE:
 		case PLAN_ECOMMERCE_2_YEARS:
 		case PLAN_ECOMMERCE_MONTHLY:
+		case PLAN_PRO:
 			return 'is-business-plan';
 		case PLAN_JETPACK_SECURITY_T1_YEARLY:
 		case PLAN_JETPACK_SECURITY_T1_MONTHLY:

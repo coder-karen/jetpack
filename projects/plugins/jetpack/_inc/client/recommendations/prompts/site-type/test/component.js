@@ -32,9 +32,22 @@ function buildInitialState() {
 					'site-type-store': true,
 					'site-type-business': true,
 				},
+				requests: {
+					isFetchingRecommendationsProductSuggestions: false
+				}
 			},
 			settings: {
 				items: [],
+			},
+			siteData: {
+				requests: {
+					isFetchingSiteDiscount: false
+				},
+			},
+			introOffers: {
+				requests: {
+					isFetching: false
+				},
 			},
 		},
 	};
@@ -88,8 +101,10 @@ describe( 'Recommendations – Site Type', () => {
 
 		const personalCheckbox = screen.getByLabelText( 'Personal' );
 		expect( personalCheckbox.checked ).to.be.false;
+
 		fireEvent.click( personalCheckbox );
-		expect( personalCheckbox.checked ).to.be.true;
+
+		expect( updateRecommendationsDataStub.callCount ).to.be.equal( 1 );
 
 		updateRecommendationsDataStub.restore();
 	} );

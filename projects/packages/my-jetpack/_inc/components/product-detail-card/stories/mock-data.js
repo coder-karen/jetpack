@@ -14,10 +14,9 @@ export const antiSpamProductData = {
 		'Advanced stats',
 	],
 	pricingForUi: {
-		available: true,
-		currencyCode: 'EUR',
-		fullPrice: 9.92,
-		promotionPercentage: 50,
+		currency_code: 'USD',
+		full_price: 119,
+		discount_price: 59,
 	},
 };
 
@@ -37,10 +36,9 @@ export const backupProductData = {
 		'One-click restores',
 	],
 	pricingForUi: {
-		available: true,
-		currencyCode: 'EUR',
-		fullPrice: 9,
-		promotionPercentage: 50,
+		currency_code: 'USD',
+		full_price: 119,
+		discount_price: 59,
 	},
 };
 
@@ -83,6 +81,27 @@ export const crmProductData = {
 	},
 };
 
+export const extrasProductData = {
+	slug: 'extras',
+	name: 'Extras',
+	title: 'Jetpack Extras',
+	description: 'Basic tools for a successful site',
+	long_description:
+		"Secure and speed up your site for free with Jetpack's powerful WordPress tools.",
+	status: 'active',
+	features: [
+		'Measure your impact with beautiful stats',
+		'Speed up your site with optimized images',
+		'Protect your site against bot attacks',
+		'Get notifications if your site goes offline',
+		'Enhance your site with dozens of other features',
+	],
+	pricingForUi: {
+		available: true,
+		is_free: true,
+	},
+};
+
 export const scanProductData = {
 	slug: 'scan',
 	name: 'Scan',
@@ -96,19 +115,19 @@ export const scanProductData = {
 		'Automated daily scanning',
 		'One-click fixes for most issues',
 		'Instant email notifications',
+		'Access to latest Firewall rules',
 	],
 	pricingForUi: {
-		available: true,
 		currency_code: 'USD',
-		full_price: 9.92,
-		discount: 50,
+		full_price: 119,
+		discount_price: 59,
 	},
 };
 
 export const searchProductData = {
 	slug: 'search',
 	name: 'Search',
-	title: 'Jetpack Site Search',
+	title: 'Jetpack Search',
 	description: 'Help them find what they need',
 	long_description:
 		'Help your site visitors find answers instantly so they keep reading and buying. Great for sites with a lot of content.',
@@ -120,10 +139,10 @@ export const searchProductData = {
 		'Spelling correction',
 	],
 	pricingForUi: {
-		available: true,
-		currency_code: 'EUR',
-		full_price: 4.5,
-		discount: 50,
+		currency_code: 'USD',
+		full_price: 59.95,
+		discount_price: 29.975,
+		coupon_discount: 50,
 	},
 };
 
@@ -143,10 +162,9 @@ export const securityProductData = {
 		'Comment & form spam protection',
 	],
 	pricingForUi: {
-		available: true,
-		show_promotion: true,
-		full_price: 24.92,
-		discount: 50,
+		currency_code: 'USD',
+		full_price: 299,
+		discount_price: 149,
 	},
 };
 
@@ -164,9 +182,8 @@ export const videoPressProductData = {
 		'Unlimited users',
 	],
 	pricingForUi: {
-		available: true,
-		currencyCode: 'USD',
-		fullPrice: 119,
-		promotionPercentage: 50,
+		currency_code: 'USD',
+		full_price: 119,
+		discount_price: 59,
 	},
 };
