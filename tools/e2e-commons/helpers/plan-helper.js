@@ -532,9 +532,8 @@ export async function syncPlanData( page ) {
 	do {
 		await page.reload( { waitFor: 'domcontentloaded' } );
 
-		/* eslint-disable no-undef */
+		// eslint-disable-next-line no-undef, camelcase
 		frPlan = await page.evaluate( () => Initial_State.siteData.plan.product_slug );
-		/* eslint-enable no-undef */
 		const planJson = await execWpCommand( 'option get jetpack_active_plan --format=json' );
 		bkPlan = JSON.parse( planJson );
 
@@ -542,5 +541,6 @@ export async function syncPlanData( page ) {
 		isSame = frPlan.trim() === bkPlan.product_slug.trim();
 	} while ( ! isSame );
 
+	// eslint-disable-next-line playwright/no-wait-for-timeout
 	await page.waitForTimeout( 1000 );
 }

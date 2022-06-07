@@ -9,7 +9,8 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import { STORE_ID } from '../../state/store';
 
 /**
- * React custom hook to deal with a My Jetpack product.
+ * React custom hook that exposes data about Product,
+ * as well as methods to manipulate it.
  *
  * @param {string} productId - My Jetpack product ID.
  * @returns {object}         - Site product data.

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base-test.js';
+import { test, expect } from 'jetpack-e2e-commons/fixtures/base-test.js';
 import { JetpackBoostPage } from '../lib/pages/index.js';
 import { prerequisitesBuilder, isModuleActive } from 'jetpack-e2e-commons/env/prerequisites.js';
 import { activateModules, deactivateModules } from 'jetpack-e2e-commons/env/index.js';
@@ -13,43 +13,49 @@ test.describe( 'Jetpack compatibility', () => {
 		await prerequisitesBuilder().withActivePlugins( [ 'jetpack' ] ).build();
 	} );
 
-	test.skip( 'The Jetpack lazy-image module activation reflects in Boost dashboard', async ( {
+	test( 'The Jetpack lazy-image module activation reflects in Boost dashboard', async ( {
 		page,
 	} ) => {
 		await prerequisitesBuilder( page ).withInactiveModules( [ 'lazy-images' ] ).build();
 		await activateModules( [ 'lazy-images' ] );
 
 		const jetpackBoostPage = await JetpackBoostPage.visit( page );
-		expect( await jetpackBoostPage.isModuleEnabled( 'lazy-images' ) ).toEqual( true );
+		expect(
+			await jetpackBoostPage.isModuleEnabled( 'lazy-images' ),
+			'lazy-images module should be enabled'
+		).toEqual( true );
 	} );
 
-	test.skip( 'The Jetpack lazy-image module deactivation reflects in Boost dashboard', async ( {
+	test( 'The Jetpack lazy-image module deactivation reflects in Boost dashboard', async ( {
 		page,
 	} ) => {
 		await prerequisitesBuilder( page ).withActiveModules( [ 'lazy-images' ] ).build();
 		await deactivateModules( [ 'lazy-images' ] );
 
 		const jetpackBoostPage = await JetpackBoostPage.visit( page );
-		expect( await jetpackBoostPage.isModuleEnabled( 'lazy-images' ) ).toEqual( false );
+		expect(
+			await jetpackBoostPage.isModuleEnabled( 'lazy-images' ),
+			'lazy-images module should be disabled'
+		).toEqual( false );
 	} );
 
-	test.skip( 'The Boost lazy-image module activation reflects in Jetpack dashboard', async ( {
+	test( 'The Boost lazy-image module activation reflects in Jetpack dashboard', async ( {
 		page,
 	} ) => {
 		await boostPrerequisitesBuilder( page ).withInactiveModules( [ 'lazy-images' ] ).build();
 		await activateBoostModules( [ 'lazy-images' ] );
 
 		const isActive = await isModuleActive( 'lazy-images' );
-		expect( isActive ).toBe( true );
+		expect( isActive, 'lazy-images module should be active' ).toBe( true );
 	} );
 
-	test.skip( 'The Boost lazy-image module deactivation reflects in Jetpack dashboard', async ( {
+	test( 'The Boost lazy-image module deactivation reflects in Jetpack dashboard', async ( {
 		page,
 	} ) => {
 		await boostPrerequisitesBuilder( page ).withActiveModules( [ 'lazy-images' ] ).build();
 		await deactivateBoostModules( [ 'lazy-images' ] );
 
 		const isActive = await isModuleActive( 'lazy-images' );
-		expect( isActive ).toBe( false );
+		expect( isActive, 'lazy-images module should not be active' ).toBe( false );
 	} );
 } );

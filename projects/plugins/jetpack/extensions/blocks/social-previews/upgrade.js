@@ -3,6 +3,7 @@
  */
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { getJetpackExtensionAvailability } from '@automattic/jetpack-shared-extension-utils';
 
 /**
  * Internal dependencies
@@ -10,7 +11,6 @@ import { __ } from '@wordpress/i18n';
 import analytics from '../../../_inc/client/lib/analytics';
 import upgradeImageUrl from './upgrade-illustration.svg';
 import useUpgradeFlow from '../../shared/use-upgrade-flow';
-import getJetpackExtensionAvailability from '../../shared/get-jetpack-extension-availability';
 import { name as block } from './index';
 
 export default function SocialPreviewsUpgrade() {
@@ -35,7 +35,7 @@ export default function SocialPreviewsUpgrade() {
 			/>
 			<div className="jetpack-social-previews__upgrade-description">
 				<h2 className="jetpack-social-previews__upgrade-heading">
-					{ __( 'Upgrade to a Business plan to unlock the power of our SEO tools', 'jetpack' ) }
+					{ __( 'Upgrade to a Pro plan to unlock the power of our SEO tools', 'jetpack' ) }
 				</h2>
 				<ul className="jetpack-social-previews__upgrade-feature-list">
 					<li>
@@ -59,7 +59,7 @@ export default function SocialPreviewsUpgrade() {
 				</ul>
 				<Button
 					href={ href } // Only for server-side rendering, since onClick doesn't work there.
-					isPrimary
+					variant="primary"
 					label={ __( 'Purchase a Business plan to access social previews', 'jetpack' ) }
 					onClick={ autosaveAndRedirect }
 					target="_top"

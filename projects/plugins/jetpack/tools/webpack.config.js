@@ -6,7 +6,6 @@ const glob = require( 'glob' );
 const path = require( 'path' );
 const StaticSiteGeneratorPlugin = require( 'static-site-generator-webpack-plugin' );
 const RemoveAssetWebpackPlugin = require( '@automattic/remove-asset-webpack-plugin' );
-const NodePolyfillPlugin = require( 'node-polyfill-webpack-plugin' );
 
 const sharedWebpackConfig = {
 	mode: jetpackWebpackConfig.mode,
@@ -23,6 +22,7 @@ const sharedWebpackConfig = {
 		modules: [ path.resolve( __dirname, '../_inc/client' ), 'node_modules' ],
 		alias: {
 			...jetpackWebpackConfig.resolve.alias,
+			crypto: false,
 			fs: false,
 		},
 	},
@@ -58,7 +58,7 @@ const sharedWebpackConfig = {
 					{
 						loader: 'postcss-loader',
 						options: {
-							postcssOptions: { config: path.join( __dirname, '../postcss.config.js' ) },
+							postcssOptions: { config: path.join( __dirname, 'postcss.config.js' ) },
 						},
 					},
 					'sass-loader',
@@ -122,8 +122,8 @@ for ( const module of moduleSources ) {
 	}
 }
 
-// We export three configuration files: One for modules, one for admin.js, and one for static.jsx (which produces pre-rendered HTML).
 module.exports = [
+	// Build all the modules.
 	{
 		...sharedWebpackConfig,
 		entry: moduleEntries,
@@ -136,6 +136,7 @@ module.exports = [
 			filename: '[name].min.js', // @todo: Fix this.
 		},
 	},
+	// Build admin page JS.
 	{
 		...sharedWebpackConfig,
 		entry: {
@@ -153,7 +154,6 @@ module.exports = [
 		plugins: [
 			...sharedWebpackConfig.plugins,
 			...jetpackWebpackConfig.DependencyExtractionPlugin( { injectPolyfill: true } ),
-			new NodePolyfillPlugin(),
 		],
 		externals: {
 			...sharedWebpackConfig.externals,
@@ -162,12 +162,20 @@ module.exports = [
 			} ),
 		},
 	},
+	// Build static.jsx (which produces pre-rendered HTML).
 	{
 		...sharedWebpackConfig,
 		entry: { static: path.join( __dirname, '../_inc/client', 'static.jsx' ) },
 		output: {
 			...sharedWebpackConfig.output,
 			libraryTarget: 'commonjs2',
+		},
+		resolve: {
+			...sharedWebpackConfig.resolve,
+			alias: {
+				...sharedWebpackConfig.resolve.alias,
+				'react-redux': require.resolve( 'react-redux/lib/alternate-renderers' ),
+			},
 		},
 		plugins: [
 			...jetpackWebpackConfig.StandardPlugins( {

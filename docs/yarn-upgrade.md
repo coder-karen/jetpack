@@ -26,7 +26,7 @@ Before checking out a branch using pnpm, you'll likely want to remove any `node_
 rm -rf node_modules projects/*/*/node_modules projects/plugins/jetpack/tests/e2e/node_modules tools/cli/node_modules
 ```
 You may also want to uninstall the Jetpack CLI from yarn with `yarn cli-unlink`.
-Then, after checking out the branch, execute `pnpm install` or `pnpm cli-setup`.
+Then, after checking out the branch, execute `pnpm install`.
 
 If you forget to do this, you'll most like get the following message when checking out the branch:
 ```
@@ -44,8 +44,7 @@ pnpm's structure.
 Most of the built-in commands are the same, although arguments accepted may differ. Also note that simply `yarn` with no command was equivalent to `yarn install`,
 while with `pnpm` you need to explicitly specify the `install` command.
 
-Scripts formerly run using `yarn foobar` may now be run using `pnpm foobar`. A few (that are bins rather than script), such as `yarn jetpack` or `yarn eslint`,
-need to use `pnpx` instead of `pnpm`. If you're familiar with npm, it's the same as the distinction between `npm` and `npx`.
+Scripts formerly run using `yarn foobar` may now be run using `pnpm foobar`.
 
 When passing arguments to scripts, pnpm requires a `--` before the arguments while yarn did not. If you forget, you'll get a somewhat confusing error from pnpm
 that the argument was not recognized since pnpm was trying to interpret it itself instead of passing it to the script.

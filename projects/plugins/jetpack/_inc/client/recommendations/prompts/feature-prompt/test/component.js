@@ -29,27 +29,47 @@ function buildInitialState( { recommendationsStep } = {} ) {
 			},
 			recommendations: {
 				data: {},
+				requests: {},
 				step: recommendationsStep,
+				siteDiscount: {
+					viewed: 'site-type',
+				},
 			},
 			settings: {
 				items: [],
 			},
-		},
+			siteData: {
+				requests: {
+					isFetchingSiteDiscount: false
+				},
+			},
+			introOffers: {
+				requests: {
+					isFetching: false
+				},
+			},
+		}
 	};
 }
 
 describe( 'Recommendations – Feature Prompt', () => {
 	const DUMMY_ACTION = { type: 'dummy' };
 	let updateRecommendationsStepStub;
+	let addViewedRecommendationStub;
 
 	before( function () {
 		updateRecommendationsStepStub = sinon
 			.stub( recommendationsActions, 'updateRecommendationsStep' )
 			.returns( DUMMY_ACTION );
+
+		addViewedRecommendationStub = sinon
+			.stub( recommendationsActions, 'addViewedRecommendation' )
+			.returns( DUMMY_ACTION );
 	} );
 
 	after( function () {
 		updateRecommendationsStepStub.restore();
+		addViewedRecommendationStub.restore();
 	} );
 
 	describe( 'Monitor', () => {
@@ -107,7 +127,8 @@ describe( 'Recommendations – Feature Prompt', () => {
 			// Make sure the enable button points to the right link
 			expect( enableFeatureButton.href ).to.have.string( 'recommendations/related-posts' );
 
-			expect( recordEventStub.callCount ).to.be.equal( 0 );
+			// The jetpack_recommendations_recommendation_viewed event has already fired on step load
+			expect( recordEventStub.callCount ).to.be.equal( 1 );
 			fireEvent.click( enableFeatureButton );
 
 			// Make sure tracks work
@@ -147,8 +168,9 @@ describe( 'Recommendations – Feature Prompt', () => {
 
 			// Make sure the enable button points to the right link
 			expect( skipFeatureButton.href ).to.have.string( 'recommendations/related-posts' );
-
-			expect( recordEventStub.callCount ).to.be.equal( 0 );
+			
+			// The jetpack_recommendations_recommendation_viewed event has already fired on step load
+			expect( recordEventStub.callCount ).to.be.equal( 1 );
 			fireEvent.click( skipFeatureButton );
 
 			// Make sure tracks work

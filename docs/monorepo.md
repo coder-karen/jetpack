@@ -50,10 +50,10 @@ First time working with the monorepo? We got you covered.
 
 For the first time only:
 
-* From the root of the repo, run `pnpm cli-setup` (if you want the `jetpack` CLI tool installed globally) or `pnpm install` (if you don't).
+* From the root of the repo, run `pnpm install && pnpm jetpack cli link` (if you want the `jetpack` CLI tool installed globally) or `pnpm install` (if you don't).
 * That’s it. You won’t need to do that again unless you nuke your node_modules directory.
 
-Once you’ve done that, it’s easy: run `jetpack` (or `pnpx jetpack`) while anywhere in the Jetpack repo. To explore on your own, run `jetpack --help` to see the available commands.
+Once you’ve done that, it’s easy: run `jetpack` (or `pnpm jetpack`) while anywhere in the Jetpack repo. To explore on your own, run `jetpack --help` to see the available commands.
 
 ## Jetpack Generate Wizard
 
@@ -145,6 +145,7 @@ We use `composer.json` to hold metadata about projects. Much of our generic tool
     ```
 * `.extra.wp-plugin-slug`: This specifies the WordPress.org plugin slug, for use by scripts that deploy the plugin to WordPress.org.
   * `.extra.beta-plugin-slug`: This specifies the plugin slug for the Jetpack Beta Tester plugin, for cases where a plugin has not been published to WordPress.org but should still be offered by that plugin.
+* `.extra.wp-svn-autopublish`: Set truthy to enable automatic publishing of tagged versions to WordPress.org. See [Mirror repositories > WordPress.org SVN Auto-publisher](#wordpressorg-svn-auto-publisher) for details.
 
 Our mirroring tooling also uses `.gitattributes` to specify built files to include in the mirror and unnecessary files to exclude.
 
@@ -196,7 +197,7 @@ We use eslint and phpcs to lint JavaScript and PHP code. Projects should comply 
   Note we're using something of a hack to get eslint to read ignore rules from `.gitignore` and per-directory `.eslintignore` files.
   Any eslintrc that does `root: true` or an `extends` that extends from an eslintrc that includes the hack will have to do like
   ```js
-  const loadIgnorePatterns = require( '../../../tools/js-tools/load-eslint-ignore.js' );
+  const loadIgnorePatterns = require( 'jetpack-js-tools/load-eslint-ignore.js' );
   module.exports = {
   	// Whatever stuff, including `root: true` or `extends`.
   	ignorePatterns: loadIgnorePatterns( __dirname ),
@@ -233,8 +234,7 @@ WordPress plugins generally want to run within WordPress. All monorepo plugins a
 
 Tests will be run against the latest version of WordPress using the variety of supported PHP versions, and against the previous and master versions of WordPress using the PHP version in `.github/versions.sh`. The environment variable `WP_BRANCH` will be set to 'latest', 'previous', or 'master' accordingly. If you have tests that only need to be run once, run them when `WP_BRANCH` is 'latest'.
 
-<!-- @todo: Update this once we drop support for WP 5.8. -->
-Note that the state of WordPress's own PHPUnit integration is currently in flux. For WordPress 5.8 and earlier you need to both use `yoast/phpunit-polyfills` to supply polyfills and need to run with PHPUnit < 8.0 (even on PHP 8, where monkey-patching is required), while for 5.9 you can use `yoast/phpunit-polyfills` normally. Your best bet for the moment is to copy what Jetpack is doing; once the situation has stabilized, we'll update this documentation and [the example bootstrap.php](./examples/bootstrap.php).
+When implementing tests within a new plugin, you can follow the example set in [the example bootstrap.php](./examples/bootstrap.php).
 
 ### JavaScript tests
 
@@ -320,6 +320,15 @@ Note the following will also be done by the build process:
 
 Before you create the first release tag, you may want to check out the mirror and run `npm publish --dry-run` to ensure that only the files you want published will be published.
 If additional files need to be excluded, create an `.npmignore`.
+
+### WordPress.org SVN Auto-publisher
+
+If `.extra.wp-svn-autopublish` is set to a truthy value in the project's `composer.json`, a GitHub Action will be included in the mirror repo that will automatically publish tags to WordPress.org's SVN when a version tag is created. This works with Autotagger.
+
+Note that, for this to work, you'll need to create secrets `WPSVN_USERNAME` and `WPSVN_PASSWORD` in the mirror repo. See PCYsg-xsv-p2#mirror-repo-secrets for details.
+Also note that `.extra.wp-plugin-slug` must be set in the project's `composer.json` or the action will fail.
+
+The action will update the plugin's trunk to the tagged source and will create a tag in SVN for the tagged version. If the tagged version does not have a prerelease component, the "Stable tag" field in the tag's readme.txt will be updated too. The "Stable tag" in trunk will not be updated; this must be done manually.
 
 ## Plugin release tooling
 

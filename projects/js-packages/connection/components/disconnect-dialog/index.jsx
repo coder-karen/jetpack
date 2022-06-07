@@ -220,6 +220,11 @@ const DisconnectDialog = props => {
 		[ setDisconnectError, setIsDisconnecting, pluginScreenDisconnectCallback, context, _disconnect ]
 	);
 
+	const trackModalClick = useCallback(
+		target => jetpackAnalytics.tracks.recordEvent( target, defaultTracksArgs ),
+		[ defaultTracksArgs ]
+	);
+
 	/**
 	 * Do we have the necessary data to be able to submit a survey?
 	 * Need to have the ID of the connected user and the ID of the connected site.
@@ -321,6 +326,7 @@ const DisconnectDialog = props => {
 					disconnectError={ disconnectError }
 					context={ context } // Where is the modal showing? ( most important for when it loads on the plugins page )
 					disconnectingPlugin={ disconnectingPlugin } // Which plugin is initiating the disconnect.
+					trackModalClick={ trackModalClick }
 				/>
 			);
 		} else if ( isDisconnected && ! isProvidingFeedback && ! isFeedbackProvided ) {
@@ -384,7 +390,7 @@ DisconnectDialog.propTypes = {
 	/** The context in which this component is being used. */
 	context: PropTypes.string,
 	/** Plugins that are using the Jetpack connection. */
-	connectedPlugins: PropTypes.object,
+	connectedPlugins: PropTypes.oneOfType( [ PropTypes.array, PropTypes.object ] ),
 	/** Callback function that is called just before the request to disconnect is made when the context is "plugins". */
 	pluginScreenDisconnectCallback: PropTypes.func,
 	/** A component to render as part of the disconnect step. */

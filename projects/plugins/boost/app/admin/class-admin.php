@@ -10,12 +10,12 @@ namespace Automattic\Jetpack_Boost\Admin;
 
 use Automattic\Jetpack\Admin_UI\Admin_Menu;
 use Automattic\Jetpack\Status;
-use Automattic\Jetpack_Boost\Features\Optimizations\Critical_CSS\Critical_CSS;
 use Automattic\Jetpack_Boost\Features\Optimizations\Optimizations;
 use Automattic\Jetpack_Boost\Features\Speed_Score\Speed_Score;
 use Automattic\Jetpack_Boost\Jetpack_Boost;
 use Automattic\Jetpack_Boost\Lib\Analytics;
 use Automattic\Jetpack_Boost\Lib\Environment_Change_Detector;
+use Automattic\Jetpack_Boost\Lib\Premium_Features;
 use Automattic\Jetpack_Boost\REST_API\Permissions\Nonce;
 
 class Admin {
@@ -81,6 +81,9 @@ class Admin {
 	 * Enqueue scripts and styles for the admin page.
 	 */
 	public function admin_init() {
+		// Clear premium features cache when the plugin settings page is loaded.
+		Premium_Features::clear_cache();
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 	}
@@ -114,7 +117,7 @@ class Admin {
 		wp_register_script(
 			$admin_js_handle,
 			plugins_url( $internal_path . 'jetpack-boost.js', JETPACK_BOOST_PATH ),
-			array(),
+			array( 'wp-i18n', 'wp-components' ),
 			JETPACK_BOOST_VERSION,
 			true
 		);
@@ -130,6 +133,7 @@ class Admin {
 			'optimizations'       => $optimizations,
 			'locale'              => get_locale(),
 			'site'                => array(
+				'domain'    => ( new Status() )->get_site_suffix(),
 				'url'       => get_home_url(),
 				'online'    => ! ( new Status() )->is_offline_mode(),
 				'assetPath' => plugins_url( $internal_path, JETPACK_BOOST_PATH ),
@@ -137,6 +141,7 @@ class Admin {
 			'shownAdminNoticeIds' => $this->get_shown_admin_notice_ids(),
 			'preferences'         => array(
 				'showRatingPrompt' => $this->get_show_rating_prompt(),
+				'prioritySupport'  => Premium_Features::has_feature( Premium_Features::PRIORITY_SUPPORT ),
 			),
 
 			/**
@@ -250,13 +255,10 @@ class Admin {
 	/**
 	 * Returns a list of admin notices to show. Asks each module to provide admin notices the user needs to see.
 	 *
-	 * @TODO: This is still a code smell. We're carrying the whole modules instance just to get a list of admin notices.
-	 *
 	 * @return \Automattic\Jetpack_Boost\Admin\Admin_Notice[]
 	 */
 	public function get_admin_notices() {
-		$critical_css = new Critical_CSS();
-		return $critical_css->get_admin_notices();
+		return apply_filters( 'jetpack_boost_admin_notices', array() );
 	}
 
 	/**
@@ -269,7 +271,7 @@ class Admin {
 	 */
 	public function handle_get_parameters() {
 		if ( is_admin() && ! empty( $_GET['jb-dismiss-notice'] ) ) {
-			$slug = sanitize_title( $_GET['jb-dismiss-notice'] );
+			$slug = sanitize_title( wp_unslash( $_GET['jb-dismiss-notice'] ) );
 
 			$dismissed_notices = \get_option( self::DISMISSED_NOTICE_OPTION, array() );
 
@@ -291,7 +293,7 @@ class Admin {
 				'status' => 'ok',
 			);
 
-			$is_enabled = 'true' === $_POST['value'] ? '1' : '0';
+			$is_enabled = isset( $_POST['value'] ) && 'true' === $_POST['value'] ? '1' : '0';
 			\update_option( self::SHOW_RATING_PROMPT_OPTION, $is_enabled );
 
 			wp_send_json( $response );

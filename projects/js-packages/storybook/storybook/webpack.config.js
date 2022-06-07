@@ -13,9 +13,10 @@ const projects = require( './projects' );
 const includePaths = [ path.resolve( __dirname ) ].concat( projects );
 
 module.exports = ( { config } ) => {
+	config.devtool = false;
 	config.module.rules.push(
 		{
-			test: /\/stories\/.+\.jsx$/,
+			test: /\/stories\/.+\.[jt]sx$/,
 			loader: require.resolve( '@storybook/source-loader' ),
 			enforce: 'pre',
 		},

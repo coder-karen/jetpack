@@ -11,7 +11,7 @@ const projects = require( './projects' );
 
 const modulesDir = path.join( __dirname, '../node_modules' );
 
-const storiesSearch = '*.@(js|jsx|mdx)';
+const storiesSearch = '*.@(js|jsx|mdx|ts|tsx)';
 
 const stories = [ process.env.NODE_ENV !== 'test' && `./stories/**/${ storiesSearch }` ]
 	.concat( projects.map( project => `${ project }/**/stories/${ storiesSearch }` ) )
@@ -45,11 +45,11 @@ module.exports = {
 			name: '@storybook/addon-docs',
 			options: { configureJSX: true },
 		},
-		'@storybook/addon-knobs',
 		'@storybook/addon-storysource',
 		'@storybook/addon-viewport',
 		'@storybook/addon-a11y',
 		'@storybook/addon-essentials',
+		'storybook-addon-turbo-build',
 	],
 	managerWebpack: updateEmotionAliases,
 	// Workaround:

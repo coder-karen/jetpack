@@ -3,7 +3,7 @@
  */
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import { connect as reduxConnect } from 'react-redux';
 import classNames from 'classnames';
 import { noop, size } from 'lodash';
 
@@ -26,13 +26,14 @@ import { isCurrentUserLinked, isConnectionOwner } from 'state/connection';
 
 import './style.scss';
 
-class Banner extends Component {
+export class Banner extends Component {
 	static propTypes = {
 		callToAction: PropTypes.string,
 		className: PropTypes.string,
 		currentVersion: PropTypes.string.isRequired,
 		description: PropTypes.node,
 		eventFeature: PropTypes.string,
+		eventProps: PropTypes.object,
 		feature: PropTypes.string, // PropTypes.oneOf( getValidFeatureKeys() ),
 		href: PropTypes.string,
 		icon: PropTypes.string,
@@ -50,6 +51,7 @@ class Banner extends Component {
 
 	static defaultProps = {
 		onClick: noop,
+		eventProps: {},
 	};
 
 	getHref() {
@@ -67,12 +69,12 @@ class Banner extends Component {
 	handleClick = () => {
 		this.props.onClick();
 
-		const { eventFeature, path, currentVersion } = this.props;
+		const { eventFeature, path, currentVersion, eventProps } = this.props;
 		if ( eventFeature || path ) {
 			const eventFeatureProp = eventFeature ? { feature: eventFeature } : {};
 			const pathProp = path ? { path } : {};
 
-			const eventProps = {
+			const clickEventProps = {
 				target: 'banner',
 				type: 'upgrade',
 				current_version: currentVersion,
@@ -80,9 +82,10 @@ class Banner extends Component {
 				is_connection_owner: this.props.isConnectionOwner ? 'yes' : 'no',
 				...eventFeatureProp,
 				...pathProp,
+				...eventProps,
 			};
 
-			analytics.tracks.recordJetpackClick( eventProps );
+			analytics.tracks.recordJetpackClick( clickEventProps );
 		}
 	};
 
@@ -178,8 +181,18 @@ class Banner extends Component {
 	}
 }
 
-export default connect( state => ( {
-	currentVersion: getCurrentVersion( state ),
-	isCurrentUserLinked: isCurrentUserLinked( state ),
-	isConnectionOwner: isConnectionOwner( state ),
-} ) )( Banner );
+/**
+ * Redux-connect a Banner or subclass.
+ *
+ * @param {Banner} BannerComponent - Component to connect.
+ * @returns {Component} Wrapped component.
+ */
+export function connect( BannerComponent ) {
+	return reduxConnect( state => ( {
+		currentVersion: getCurrentVersion( state ),
+		isCurrentUserLinked: isCurrentUserLinked( state ),
+		isConnectionOwner: isConnectionOwner( state ),
+	} ) )( BannerComponent );
+}
+
+export default connect( Banner );
