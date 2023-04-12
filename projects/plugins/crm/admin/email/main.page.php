@@ -229,7 +229,7 @@ function jpcrm_render_emailbox() {
 			$i = 0;
 
 			if ( count( $email_hist ) == 0 ) {
-				echo "<div class='no-emails'><i class='ui icon exclamation'></i><br/>" . esc_html__( 'No emails of this type', 'zero-bs-crm' ) . '</div>';
+				echo "<div class='no-emails'><i class='ui icon exclamation'></i><br/>" . esc_html__( 'No emails of this type at all', 'zero-bs-crm' ) . '</div>';
 			}
 
 			foreach ( $email_hist as $email ) {
