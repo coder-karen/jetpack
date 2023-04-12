@@ -45,6 +45,7 @@ module.exports = {
 		'@storybook/addon-viewport',
 		'@storybook/addon-a11y',
 		'@storybook/addon-essentials',
+		'storybook-addon-mock',
 		'storybook-addon-turbo-build',
 	],
 	managerWebpack: updateEmotionAliases,
@@ -61,6 +62,11 @@ module.exports = {
 		} );
 
 		const finalConfig = updateEmotionAliases( config );
+
+		// Conform to Webpack module resolution rule for Search dashboard.
+		finalConfig.resolve.modules.push(
+			path.join( __dirname, '../../../packages/search/src/dashboard/' )
+		);
 
 		return finalConfig;
 	},

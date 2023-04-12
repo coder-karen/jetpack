@@ -2,6 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { castToNumber } from '../utils/cast-to-number';
 import { castToString } from '../utils/cast-to-string';
 import { isJsonObject, JSONObject } from '../utils/json-types';
+import { SupportUrl } from '../utils/paid-plan';
 import pollPromise from '../utils/poll-promise';
 import { standardizeError } from '../utils/standardize-error';
 import api from './api';
@@ -36,7 +37,6 @@ export async function requestSpeedScores( force = false ): Promise< SpeedScoresS
 	// Request metrics
 	const response = parseResponse(
 		await api.post( force ? '/speed-scores/refresh' : '/speed-scores', {
-			// eslint-disable-next-line camelcase
 			url: Jetpack_Boost.site.url,
 		} )
 	);
@@ -115,7 +115,6 @@ async function pollRequest(): Promise< SpeedScoresSet > {
 		timeoutError: __( 'Timed out while waiting for speed-score.', 'jetpack-boost' ),
 		callback: async resolve => {
 			const response = parseResponse(
-				// eslint-disable-next-line camelcase
 				await api.post( '/speed-scores', { url: Jetpack_Boost.site.url } )
 			);
 
@@ -157,48 +156,82 @@ export function getScoreLetter( mobile: number, desktop: number ): string {
 }
 
 /**
- * Find out if scores were improved.
- *
- * Only show the speed scores if there was an improvement on either mobile or desktop, and neither worsened.
+ * Find out if site scores changed. We fire a popout modal if they improve or worsen.
+ * The message varies depending on the results of the speed scores so lets modify this
  *
  * @param {SpeedScoresSet} scores
  * @return boolean
  */
-export function didScoresImprove( scores: SpeedScoresSet ): boolean {
+export function didScoresChange( scores: SpeedScoresSet ): boolean {
 	const current = scores.current;
 	const noBoost = scores.noBoost;
 
-	// Consider the score was improved if either desktop or mobile improved and neither worsened.
-	return (
-		null !== current &&
-		null !== noBoost &&
-		current.mobile >= noBoost.mobile &&
-		current.desktop >= noBoost.desktop &&
-		current.mobile + current.desktop > noBoost.mobile + noBoost.desktop &&
-		( getScoreImprovementPercentage( scores ) >= 5 || current.desktop + current.mobile > 180 )
-	);
-}
+	// lets make this a little bit more readable. If one of the scores is null.
+	// then the scores haven't changed. So return false.
+	if ( null == current || null == noBoost ) {
+		return false;
+	}
 
-export function getScoreImprovementPercentage( scores: SpeedScoresSet ): number {
-	const current = scores.current.mobile + scores.current.desktop;
-	const noBoost = scores.noBoost.mobile + scores.noBoost.desktop;
-	const improvement = current / noBoost - 1;
+	// if either the mobile or the desktop scores have changed. Return true.
+	if ( current.mobile !== noBoost.mobile || current.desktop !== noBoost.desktop ) {
+		return true;
+	}
 
-	return Math.round( improvement * 100 );
+	//else if reach here then the scores are the same.
+	return false;
 }
 
 /**
- * Find out if scores were made worse.
+ * Determine the change in scores to pass through to other functions.
  *
- * Only show the speed score reduction message if the scores got worse.
- *
- * @param {SpeedScoresSet} scores
- * @return boolean
+ * @param scores
+ * @return percentage
  */
-export function didScoresWorsen( scores: SpeedScoresSet ): boolean {
+export function getScoreMovementPercentage( scores: SpeedScoresSet ): number {
 	const current = scores.current;
 	const noBoost = scores.noBoost;
+	let currentScore = 0;
+	let noBoostScore = 0;
 
-	// Consider the score got worse if combined score fell.
-	return null !== current && null !== noBoost && getScoreImprovementPercentage( scores ) < -5;
+	if ( current !== null && noBoost !== null ) {
+		currentScore = scores.current.mobile + scores.current.desktop;
+		noBoostScore = scores.noBoost.mobile + scores.noBoost.desktop;
+		const change = currentScore / noBoostScore - 1;
+		return Math.round( change * 100 );
+	}
+	return 0;
+}
+
+export type ScoreChangeMessage = {
+	id: string;
+	title: string;
+	message: string;
+	cta: string;
+	ctaLink: string;
+};
+
+export function scoreChangeModal( scores: SpeedScoresSet ): ScoreChangeMessage | null {
+	const changePercentage = getScoreMovementPercentage( scores );
+	if ( changePercentage > 5 ) {
+		return {
+			id: 'score-increase',
+			title: __( 'Your site got faster', 'jetpack-boost' ),
+			message: __( 'That great! If you’re happy, why not rate Boost?', 'jetpack-boost' ),
+			cta: __( 'Rate the Plugin', 'jetpack-boost' ),
+			ctaLink: 'https://wordpress.org/support/plugin/jetpack-boost/reviews/#new-post',
+		};
+	} else if ( changePercentage < -5 && Jetpack_Boost.preferences.prioritySupport ) {
+		return {
+			id: 'score-decrease',
+			title: __( 'Speed score has fallen', 'jetpack-boost' ),
+			message: __(
+				'Jetpack Boost should not slow down your site. Try refreshing your score. If the problem persists please contact support',
+				'jetpack-boost'
+			),
+			cta: __( 'Contact Support', 'jetpack-boost' ),
+			ctaLink: SupportUrl,
+		};
+	}
+
+	return null;
 }

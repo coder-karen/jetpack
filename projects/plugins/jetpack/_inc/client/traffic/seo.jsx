@@ -33,6 +33,26 @@ export const conflictingSeoPluginsList = [
 		name: 'All in One SEO Pack Pro',
 		slug: 'all-in-one-seo-pack-pro/all_in_one_seo_pack.php',
 	},
+	{
+		name: 'SEOPress',
+		slug: 'wp-seopress/seopress.php',
+	},
+	{
+		name: 'SEOPress Pro',
+		slug: 'wp-seopress-pro/seopress-pro.php',
+	},
+	{
+		name: 'SEOKEY',
+		slug: 'seo-key/seo-key.php',
+	},
+	{
+		name: 'SEOKEY Pro',
+		slug: 'seo-key-pro/seo-key.php',
+	},
+	{
+		name: 'The SEO Framework',
+		slug: 'autodescription/autodescription.php',
+	},
 ];
 
 export const SEO = withModuleSettingsFormHelpers(

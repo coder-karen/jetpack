@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.4 - 2023-01-11
+### Changed
+- Admin menu: ensure that the Jetpack Beta menu always lives under the main Jetpack menu.
+
+## 3.1.3 - 2022-09-20
+### Changed
+- Renaming `master` references to `trunk` [#24712]
+- Updated package dependencies.
+
 ## 3.1.2 - 2022-06-08
 ### Added
 - Adding trunk branch cases in preparation for monorepo branch renaming

@@ -2,7 +2,8 @@ import apiFetch from '@wordpress/api-fetch';
 
 export const FETCH_JETPACK_SETTINGS = 'FETCH_JETPACK_SETTINGS';
 export const UPDATE_JETPACK_SETTINGS = 'UPDATE_JETPACK_SETTINGS';
-export const GET_SHARES_COUNT = 'GET_SHARES_COUNT';
+export const FETCH_SOCIAL_IMAGE_GENERATOR_SETTINGS = 'FETCH_SOCIAL_IMAGE_GENERATOR_SETTINGS';
+export const UPDATE_SOCIAL_IMAGE_GENERATOR_SETTINGS = 'UPDATE_SOCIAL_IMAGE_GENERATOR_SETTINGS';
 
 /**
  * fetchJetpackSettings action
@@ -29,13 +30,26 @@ export const updateJetpackSettings = settings => {
 };
 
 /**
- * fetchSharesCount action
+ * fetchSocialImageGeneratorSettings action
  *
  * @returns {object} - an action object.
  */
-export const fetchSharesCount = () => {
+export const fetchSocialImageGeneratorSettings = () => {
 	return {
-		type: GET_SHARES_COUNT,
+		type: FETCH_SOCIAL_IMAGE_GENERATOR_SETTINGS,
+	};
+};
+
+/**
+ * updateSocialImageGeneratorSettings action
+ *
+ * @param {*} settings - Social Image Generator settings object.
+ * @returns {object} - an action object.
+ */
+export const updateSocialImageGeneratorSettings = settings => {
+	return {
+		type: UPDATE_SOCIAL_IMAGE_GENERATOR_SETTINGS,
+		settings,
 	};
 };
 
@@ -50,7 +64,14 @@ export default {
 			data: action.settings,
 		} );
 	},
-	[ GET_SHARES_COUNT ]: function () {
-		return apiFetch( { path: '/jetpack/v4/publicize/shares-count' } );
+	[ FETCH_SOCIAL_IMAGE_GENERATOR_SETTINGS ]: function () {
+		return apiFetch( { path: '/jetpack/v4/social-image-generator/settings' } );
+	},
+	[ UPDATE_SOCIAL_IMAGE_GENERATOR_SETTINGS ]: function ( action ) {
+		return apiFetch( {
+			path: '/jetpack/v4/social-image-generator/settings',
+			method: 'POST',
+			data: action.settings,
+		} );
 	},
 };

@@ -181,7 +181,7 @@ EOF
 				$filename = $this->getDefaultFilename( $output );
 			}
 			if ( $isInteractive ) {
-				$question = new Question( "Name your change file <info>[default: $filename]</> > ", $filename );
+				$question = new Question( "Name your changelog file <info>[default: $filename]</> > ", $filename );
 				$question->setValidator( array( $this, 'validateFilename' ) );
 				$filename = $this->getHelper( 'question' )->ask( $input, $output, $question );
 				if ( null === $filename ) { // non-interactive.
@@ -195,7 +195,7 @@ EOF
 				if ( file_exists( "$dir/$filename" ) && $input->getOption( 'filename-auto-suffix' ) ) {
 					$i = 2;
 					while ( file_exists( "$dir/$filename#$i" ) ) {
-						$i++;
+						++$i;
 					}
 					$output->writeln( "File \"$filename\" already exists. Creating \"$filename#$i\" instead.", OutputInterface::VERBOSITY_VERBOSE );
 					$filename = "$filename#$i";

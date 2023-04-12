@@ -1,94 +1,71 @@
-import { Text } from '@automattic/jetpack-components';
-import { Button } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { Button, Text } from '@automattic/jetpack-components';
+import { Dropdown } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { external, moreVertical } from '@wordpress/icons';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { useCallback } from 'react';
 import useAnalytics from '../../hooks/use-analytics';
+import ActionButton, { PRODUCT_STATUSES } from './action-buton';
 import styles from './style.module.scss';
-
-export const PRODUCT_STATUSES = {
-	ACTIVE: 'active',
-	INACTIVE: 'inactive',
-	ERROR: 'error',
-	ABSENT: 'plugin_absent',
-	NEEDS_PURCHASE: 'needs_purchase',
-};
 
 const PRODUCT_STATUSES_LABELS = {
 	[ PRODUCT_STATUSES.ACTIVE ]: __( 'Active', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.INACTIVE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.NEEDS_PURCHASE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
+	[ PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.ERROR ]: __( 'Error', 'jetpack-my-jetpack' ),
 };
 
-const ActionButton = ( {
-	status,
-	admin,
-	name,
-	onActivate,
-	onManage,
-	onFixConnection,
-	isFetching,
-	className,
-	onAdd,
-} ) => {
-	if ( ! admin ) {
-		return (
-			<span className={ styles[ 'action-link-button' ] }>
-				{
-					/* translators: placeholder is product name. */
-					sprintf( __( 'Learn about %s', 'jetpack-my-jetpack' ), name )
-				}
-			</span>
-		);
-	}
-
-	const buttonState = {
-		variant: ! isFetching ? 'primary' : undefined,
-		disabled: isFetching,
-		className,
-	};
-
-	switch ( status ) {
-		case PRODUCT_STATUSES.ABSENT:
-			return (
-				<span className={ styles[ 'action-link-button' ] }>
-					{
-						/* translators: placeholder is product name. */
-						sprintf( __( 'Add %s', 'jetpack-my-jetpack' ), name )
-					}
-				</span>
-			);
-		case PRODUCT_STATUSES.NEEDS_PURCHASE:
-			return (
-				<Button { ...buttonState } onClick={ onAdd }>
-					{ __( 'Purchase', 'jetpack-my-jetpack' ) }
-				</Button>
-			);
-		case PRODUCT_STATUSES.ACTIVE:
-			return (
-				<Button { ...buttonState } variant="secondary" onClick={ onManage }>
-					{ __( 'Manage', 'jetpack-my-jetpack' ) }
-				</Button>
-			);
-		case PRODUCT_STATUSES.ERROR:
-			return (
-				<Button { ...buttonState } onClick={ onFixConnection }>
-					{ __( 'Fix connection', 'jetpack-my-jetpack' ) }
-				</Button>
-			);
-		case PRODUCT_STATUSES.INACTIVE:
-			return (
-				<Button { ...buttonState } variant="secondary" onClick={ onActivate }>
-					{ __( 'Activate', 'jetpack-my-jetpack' ) }
-				</Button>
-			);
-
-		default:
-			return null;
-	}
+/* eslint-disable react/jsx-no-bind */
+const Menu = ( { items = [], onManage } ) => {
+	return (
+		<Dropdown
+			className={ styles.dropdown }
+			popoverProps={ { noArrow: false, placement: 'bottom-end' } }
+			renderToggle={ ( { isOpen, onToggle } ) => (
+				<Button
+					variant="tertiary"
+					size="small"
+					icon={ moreVertical }
+					onClick={ onToggle }
+					aria-expanded={ isOpen }
+				/>
+			) }
+			renderContent={ ( { onClose } ) => (
+				<>
+					{ items.map( item => (
+						<Button
+							weight="regular"
+							fullWidth
+							variant="tertiary"
+							icon={ item?.icon }
+							onClick={ () => {
+								onClose();
+								item?.onClick?.();
+							} }
+						>
+							{ item?.label }
+						</Button>
+					) ) }
+					<Button
+						weight="regular"
+						fullWidth
+						variant="tertiary"
+						icon={ external }
+						onClick={ () => {
+							onClose();
+							onManage?.();
+						} }
+					>
+						{ __( 'Manage', 'jetpack-my-jetpack' ) }
+					</Button>
+				</>
+			) }
+		/>
+	);
 };
+/* eslint-enable react/jsx-no-bind */
 
 const ProductCard = props => {
 	const {
@@ -102,13 +79,22 @@ const ProductCard = props => {
 		onManage,
 		isFetching,
 		slug,
+		children,
+		showMenu = false,
+		menuItems = [],
 	} = props;
 	const isActive = status === PRODUCT_STATUSES.ACTIVE;
 	const isError = status === PRODUCT_STATUSES.ERROR;
 	const isInactive = status === PRODUCT_STATUSES.INACTIVE;
-	const isAbsent = status === PRODUCT_STATUSES.ABSENT;
-	const isPurchaseRequired = status === PRODUCT_STATUSES.NEEDS_PURCHASE;
+	const isAbsent =
+		status === PRODUCT_STATUSES.ABSENT || status === PRODUCT_STATUSES.ABSENT_WITH_PLAN;
+	const isPurchaseRequired =
+		status === PRODUCT_STATUSES.NEEDS_PURCHASE ||
+		status === PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE;
 	const flagLabel = PRODUCT_STATUSES_LABELS[ status ];
+
+	// If status is absent, we disable the menu
+	const menuIsActive = showMenu && ! isAbsent;
 
 	const containerClassName = classNames( styles.container, {
 		[ styles.plugin_absent ]: isAbsent,
@@ -174,22 +160,35 @@ const ProductCard = props => {
 	}, [ slug, onFixConnection, recordEvent ] );
 
 	const CardWrapper = isAbsent
-		? ( { children, ...cardProps } ) => (
+		? ( { children: wrapperChildren, ...cardProps } ) => (
 				<a { ...cardProps } href="#" onClick={ addHandler }>
-					{ children }
+					{ wrapperChildren }
 				</a>
 		  )
-		: ( { children, ...cardProps } ) => <div { ...cardProps }>{ children }</div>;
+		: ( { children: wrapperChildren, ...cardProps } ) => (
+				<div { ...cardProps }>{ wrapperChildren }</div>
+		  );
 
 	return (
 		<CardWrapper className={ containerClassName }>
-			<div className={ styles.name }>
-				<Text variant="title-medium">{ name }</Text>
-				{ icon }
+			<div className={ styles.title }>
+				<div className={ styles.name }>
+					<Text variant="title-medium">{ name }</Text>
+					{ menuIsActive && icon }
+				</div>
+				{ menuIsActive ? <Menu items={ menuItems } onManage={ onManage } /> : icon }
 			</div>
-			<Text variant="body-small" className={ styles.description }>
-				{ description }
-			</Text>
+			{
+				// If is not active, no reason to use children
+				// Since we want user to take action if isn't active
+				isActive && children ? (
+					children
+				) : (
+					<Text variant="body-small" className={ styles.description }>
+						{ description }
+					</Text>
+				)
+			}
 			<div className={ styles.actions }>
 				<ActionButton
 					{ ...props }
@@ -209,6 +208,7 @@ const ProductCard = props => {
 };
 
 ProductCard.propTypes = {
+	children: PropTypes.node,
 	name: PropTypes.string.isRequired,
 	description: PropTypes.string.isRequired,
 	icon: PropTypes.element,
@@ -224,7 +224,9 @@ ProductCard.propTypes = {
 		PRODUCT_STATUSES.INACTIVE,
 		PRODUCT_STATUSES.ERROR,
 		PRODUCT_STATUSES.ABSENT,
+		PRODUCT_STATUSES.ABSENT_WITH_PLAN,
 		PRODUCT_STATUSES.NEEDS_PURCHASE,
+		PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE,
 	] ).isRequired,
 };
 
@@ -237,4 +239,5 @@ ProductCard.defaultProps = {
 	onAdd: () => {},
 };
 
+export { PRODUCT_STATUSES };
 export default ProductCard;

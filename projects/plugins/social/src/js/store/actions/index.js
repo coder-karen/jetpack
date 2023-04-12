@@ -1,9 +1,9 @@
 import siteSettingActions from './jetpack-settings';
-import sharesCountActions from './shares-count';
+import socialImageGeneratorSettingActions from './social-image-generator-settings';
 
 const actions = {
 	...siteSettingActions,
-	...sharesCountActions,
+	...socialImageGeneratorSettingActions,
 };
 
 export default actions;

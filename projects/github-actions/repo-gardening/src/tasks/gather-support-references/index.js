@@ -1,5 +1,8 @@
+const { getInput } = require( '@actions/core' );
 const debug = require( '../../utils/debug' );
 const getComments = require( '../../utils/get-comments' );
+const getLabels = require( '../../utils/get-labels' );
+const sendSlackMessage = require( '../../utils/send-slack-message' );
 
 /* global GitHub, WebhookPayloadIssue */
 
@@ -7,7 +10,7 @@ const getComments = require( '../../utils/get-comments' );
  * Search for a previous comment from this task in our issue.
  *
  * @param {Array} issueComments - Array of all comments on that issue.
- * @returns {Promise<Object>} Promise resolving to an object of information about our comment.
+ * @returns {Promise<object>} Promise resolving to an object of information about our comment.
  */
 async function getListComment( issueComments ) {
 	let commentInfo = {};
@@ -51,7 +54,10 @@ async function getIssueReferences( octokit, owner, repo, number, issueComments )
 		repo,
 		issue_number: +number,
 	} );
-	ticketReferences.push( ...body.matchAll( referencesRegexP ) );
+
+	if ( body ) {
+		ticketReferences.push( ...body.matchAll( referencesRegexP ) );
+	}
 
 	debug( `gather-support-references: Getting references from comments.` );
 	issueComments.map( comment => {
@@ -85,12 +91,19 @@ async function getIssueReferences( octokit, owner, repo, number, issueComments )
 /**
  * Build a comment body with a to-do list of all support references on that issue.
  *
- * @param {Array} issueReferences - Array of support references.
- * @param {Set}   checkedRefs     - Set of support references already checked.
+ * @param {Array}   issueReferences     - Array of support references.
+ * @param {Set}     checkedRefs         - Set of support references already checked.
+ * @param {boolean} needsEscalationNote - Whether the issue needs an escalation note.
+ * @param {string}  escalationNote      - String that indicates an issue was escalated.
  * @returns {string} Comment body.
  */
-function buildCommentBody( issueReferences, checkedRefs = new Set() ) {
-	const commentBody = `**Support References**
+function buildCommentBody(
+	issueReferences,
+	checkedRefs = new Set(),
+	needsEscalationNote = false,
+	escalationNote = ''
+) {
+	let commentBody = `**Support References**
 
 *This comment is automatically generated. Please do not edit it.*
 
@@ -102,7 +115,197 @@ ${ issueReferences
 	.join( '' ) }
 `;
 
+	// If this issue was escalated, make note of it, so next time we edit that comment, we won't escalate it again.
+	if ( needsEscalationNote === true ) {
+		commentBody += `\n${ escalationNote }`;
+	}
+
 	return commentBody;
+}
+
+/**
+ * Build an object containing the slack message and its formatting to send to Slack.
+ *
+ * @param {WebhookPayloadIssue} payload - Issue event payload.
+ * @param {string}              channel - Slack channel ID.
+ * @param {string}              message - Basic message (without the formatting).
+ * @returns {object} Object containing the slack message and its formatting.
+ */
+function formatSlackMessage( payload, channel, message ) {
+	const { issue, repository } = payload;
+	const { html_url, title } = issue;
+
+	let dris = '@kitkat-team';
+	switch ( repository.full_name ) {
+		case 'Automattic/jetpack':
+			dris = '@jpop-da';
+			break;
+		case 'Automattic/zero-bs-crm':
+		case 'Automattic/sensei':
+		case 'Automattic/WP-Job-Manager':
+			dris = '@heysatellite';
+			break;
+	}
+
+	return {
+		channel,
+		blocks: [
+			{
+				type: 'section',
+				text: {
+					type: 'mrkdwn',
+					text: `${ dris } ${ message }`,
+				},
+			},
+			{
+				type: 'divider',
+			},
+			{
+				type: 'section',
+				text: {
+					type: 'mrkdwn',
+					text: `<${ html_url }|${ title }>`,
+				},
+			},
+		],
+		text: `${ dris } ${ message } -- <${ html_url }|${ title }>`, // Fallback text for display in notifications.
+		mrkdwn: true, // Formatting of the fallback text.
+		unfurl_links: false,
+		unfurl_media: false,
+	};
+}
+
+/**
+ * Check if an issue needs to be escalated to the triage team.
+ *
+ * If our issue has gathered more than 10 tickets,
+ * if we have the necessary Slack tokens,
+ * if we didn't send anything to Slack about that issue yet,
+ * let's send a Slack message to warn the triage team,
+ * and make a note so we don't send it again.
+ *
+ * @param {Array}               issueReferences - Array of support references.
+ * @param {string}              commentBody     - Previous comment ID.
+ * @param {string}              escalationNote  - String that indicates an issue was escalated.
+ * @param {WebhookPayloadIssue} payload         - Issue event payload.
+ * @returns {Promise<boolean>} Was the issue escalated?
+ */
+async function checkForEscalation( issueReferences, commentBody, escalationNote, payload ) {
+	// No Slack tokens, we won't be able to escalate. Bail.
+	const slackToken = getInput( 'slack_token' );
+	const channel = getInput( 'slack_quality_channel' );
+	if ( ! slackToken || ! channel ) {
+		return false;
+	}
+
+	// Issue hasn't gathered more than 10 tickets yet, bail.
+	if ( issueReferences.length < 10 ) {
+		return false;
+	}
+
+	// We already sent a Slack message about this issue, bail.
+	if ( commentBody.includes( escalationNote ) ) {
+		debug(
+			`gather-support-references: Issue ${ payload.issue.number } already escalated to triage team. No need to warn them again.`
+		);
+		return true;
+	}
+
+	// When the issue is already closed, do not send any Slack reminder.
+	if ( payload.issue.state === 'closed' ) {
+		debug(
+			`gather-support-references: Issue ${ payload.issue.number } is closed, no need to escalate.`
+		);
+		return false;
+	}
+
+	debug(
+		`gather-support-references: Issue #${ payload.issue.number } has now gathered more than 10 tickets. It's time to escalate it.`
+	);
+	const message = `:warning: This issue has now gathered more than 10 tickets. It may be time to reconsider its priority.`;
+	const slackMessageFormat = formatSlackMessage( payload, channel, message );
+	await sendSlackMessage( message, channel, slackToken, payload, slackMessageFormat );
+
+	return true;
+}
+
+/**
+ * Add or update a label on the issue to indicate a number range of support references,
+ * once it has gathered more than 10 support references.
+ *
+ * @param {GitHub} octokit - Initialized Octokit REST client.
+ * @param {string} repo - Repository name.
+ * @param {string} ownerLogin - Owner of the repository.
+ * @param {number} number - Issue number.
+ * @param {number} issueReferencesCount - Number of support references gathered in this issue.
+ * @returns {Promise<void>}
+ */
+async function addOrUpdateInteractionCountLabel(
+	octokit,
+	repo,
+	ownerLogin,
+	number,
+	issueReferencesCount
+) {
+	const ranges = [ 50, 20, 10 ];
+
+	// Check if our issue has issues in one of the ranges where we want to label it.
+	const issueRange = ranges.find( range => issueReferencesCount > range );
+
+	// Bail if our issue hasn't gathered enough support references to warrant a label.
+	if ( ! issueRange ) {
+		return;
+	}
+
+	// Name of the label we want to add to this issue.
+	const interactionCountLabel = `[Interaction #] > ${ issueRange }`;
+
+	debug(
+		`gather-support-references: Issue #${ number } has gathered ${ issueReferencesCount } support references. It deserves a label, "${ interactionCountLabel }"`
+	);
+
+	// Check if the issue already has this label.
+	const labels = await getLabels( octokit, ownerLogin, repo, number );
+	const existingInteractionCountLabels = labels.filter( label =>
+		label.startsWith( '[Interaction #]' )
+	);
+
+	// Our issue already has at least one interaction count label. Is is the right one?
+	if ( existingInteractionCountLabels.length > 0 ) {
+		await Promise.all(
+			existingInteractionCountLabels.map( async existingInteractionCountLabel => {
+				// if that's not the one we want to add, remove it.
+				if ( existingInteractionCountLabel !== interactionCountLabel ) {
+					debug(
+						`gather-support-references: Issue #${ number } already has a label, "${ existingInteractionCountLabel }". We want to add the "${ interactionCountLabel }" label. Removing the "${ existingInteractionCountLabel }" label.`
+					);
+					await octokit.rest.issues.removeLabel( {
+						owner: ownerLogin,
+						repo,
+						issue_number: +number,
+						name: existingInteractionCountLabel,
+					} );
+				}
+			} )
+		);
+	}
+
+	// Check if the issue has the label we want to add. If so, bail, no need to add it.
+	if ( existingInteractionCountLabels.includes( interactionCountLabel ) ) {
+		debug(
+			`gather-support-references: Issue #${ number } already has the "${ interactionCountLabel }" label. No need to add it.`
+		);
+		return;
+	}
+
+	// Add the label to our issue.
+	debug( `gather-support-references: Adding the "${ interactionCountLabel }" label.` );
+	await octokit.rest.issues.addLabels( {
+		owner: ownerLogin,
+		repo,
+		issue_number: +number,
+		labels: [ interactionCountLabel ],
+	} );
 }
 
 /**
@@ -118,6 +321,7 @@ async function createOrUpdateComment( payload, octokit, issueReferences, issueCo
 	const { number } = issue;
 	const { name: repo, owner } = repository;
 	const ownerLogin = owner.login;
+	const escalationNote = '<!-- Issue escalated to triage team. ->';
 
 	const existingComment = await getListComment( issueComments );
 
@@ -136,8 +340,32 @@ async function createOrUpdateComment( payload, octokit, issueReferences, issueCo
 			checkedRefs.add( referenceStatus[ 1 ] );
 		}
 
+		// If our list includes more than 10 tickets,
+		// let's send a Slack message to warn the triage team,
+		// add note it so the list comment mentions that this was escalated.
+		const needsEscalationNote = await checkForEscalation(
+			issueReferences,
+			existingComment.body,
+			escalationNote,
+			payload
+		);
+
+		// Add or update a label counting the number of tickets on that issue.
+		await addOrUpdateInteractionCountLabel(
+			octokit,
+			repo,
+			ownerLogin,
+			number,
+			issueReferences.length
+		);
+
 		// Build our comment body, with first the checked references, then the unchecked references.
-		const updatedComment = buildCommentBody( issueReferences, checkedRefs );
+		const updatedComment = buildCommentBody(
+			issueReferences,
+			checkedRefs,
+			needsEscalationNote,
+			escalationNote
+		);
 
 		await octokit.rest.issues.updateComment( {
 			owner: ownerLogin,

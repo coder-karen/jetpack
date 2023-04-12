@@ -51,12 +51,27 @@ class Test_Connections_Post_Field  extends TestCase {
 	 * @var array
 	 */
 	private $wp_rest_additional_fields = null;
+
 	/**
 	 * Publicize instance.
 	 *
 	 * @var ?Publicize
 	 */
 	private $publicize = null;
+
+	/**
+	 * Admin user ID.
+	 *
+	 * @var int
+	 */
+	private $admin_id;
+
+	/**
+	 * WP_REST_Server instance.
+	 *
+	 * @var WP_REST_Server
+	 */
+	private $server;
 
 	/**
 	 * Setting up the test.
@@ -66,11 +81,15 @@ class Test_Connections_Post_Field  extends TestCase {
 	public function set_up() {
 		$this->setup_jetpack_connections();
 		global $publicize;
-		$this->publicize = $this->getMockBuilder( Publicize::class )->setMethods( array( 'refresh_connections' ) )->getMock();
+		$this->publicize = $this->getMockBuilder( Publicize::class )->setMethods( array( 'refresh_connections', 'test_connection' ) )->getMock();
 
 		$this->publicize->method( 'refresh_connections' )
 			->withAnyParameters()
 			->willReturn( null );
+
+		$this->publicize->method( 'test_connection' )
+			->withAnyParameters()
+			->willReturn( true );
 
 		$publicize = $this->publicize;
 		register_post_type(
@@ -137,7 +156,6 @@ class Test_Connections_Post_Field  extends TestCase {
 				'post_date_gmt'         => '',
 			)
 		);
-
 	}
 
 	/**
@@ -335,5 +353,39 @@ class Test_Connections_Post_Field  extends TestCase {
 		foreach ( $data['jetpack_publicize_connections'] as $connection ) {
 			$this->assertSame( 'facebook' !== $connection->service_name, $connection->enabled );
 		}
+	}
+
+	/**
+	 * Test that connections are enabled when the publicize_checkbox_default filter isn't used.
+	 */
+	public function test_default_checkbox_filter() {
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->draft_id ) );
+		$this->server->dispatch( $request );
+
+		foreach ( self::$connection_ids as $unique_id ) {
+			$skip_key = $this->publicize->POST_SKIP . $unique_id;
+			$this->assertEmpty( get_post_meta( $this->draft_id, $skip_key, true ) );
+		}
+	}
+
+	/**
+	 * Test that connections are skipped when the publicize_checkbox_default filter is used.
+	 */
+	public function test_default_checkbox_filter_disabled() {
+		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		$filter_func = function ( $default ) {
+			return false;
+		};
+
+		add_filter( 'publicize_checkbox_default', $filter_func );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->draft_id ) );
+		$this->server->dispatch( $request );
+
+		foreach ( self::$connection_ids as $unique_id ) {
+			$skip_key = $this->publicize->POST_SKIP . $unique_id;
+			$this->assertNotEmpty( get_post_meta( $this->draft_id, $skip_key, true ) );
+		}
+
+		remove_filter( 'publicize_checkbox_default', $filter_func );
 	}
 }

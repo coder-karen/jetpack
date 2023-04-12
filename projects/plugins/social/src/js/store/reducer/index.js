@@ -1,14 +1,16 @@
 import { combineReducers } from '@wordpress/data';
 import connectionData from './connection-data';
 import jetpackSettings from './jetpack-settings';
-import sharesCount from './shares-count';
+import sharesData from './shares-data';
 import siteData from './site-data';
+import socialImageGeneratorSettings from './social-image-generator-settings';
 
 const reducer = combineReducers( {
+	sharesData,
 	siteData,
 	connectionData,
 	jetpackSettings,
-	sharesCount,
+	socialImageGeneratorSettings,
 } );
 
 export default reducer;

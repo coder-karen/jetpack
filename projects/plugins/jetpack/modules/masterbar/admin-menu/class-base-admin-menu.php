@@ -80,6 +80,7 @@ abstract class Base_Admin_Menu {
 			add_action( 'admin_footer', array( $this, 'dashboard_switcher_scripts' ) );
 			add_action( 'admin_menu', array( $this, 'handle_preferred_view' ), 99997 );
 			add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
+			add_action( 'adminmenu', array( $this, 'inject_core_mobile_toggle' ) );
 		}
 	}
 
@@ -247,14 +248,8 @@ abstract class Base_Admin_Menu {
 	 * Enqueues scripts and styles.
 	 */
 	public function enqueue_scripts() {
-		$is_wpcom = defined( 'IS_WPCOM' ) && IS_WPCOM;
-
 		if ( $this->is_rtl() ) {
-			if ( $is_wpcom ) {
-				$css_path = 'rtl/admin-menu-rtl.css';
-			} else {
-				$css_path = 'admin-menu-rtl.css';
-			}
+			$css_path = 'admin-menu-rtl.css';
 		} else {
 			$css_path = 'admin-menu.css';
 		}
@@ -749,6 +744,17 @@ abstract class Base_Admin_Menu {
 	 */
 	public function should_link_to_wp_admin() {
 		return get_user_option( 'jetpack_admin_menu_link_destination' );
+	}
+
+	/**
+	 * Injects the core's mobile toggle for proper positioning of the submenus.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/32747
+	 *
+	 * @return void
+	 */
+	public function inject_core_mobile_toggle() {
+		echo '<span id="wp-admin-bar-menu-toggle" style="display: none!important">';
 	}
 
 	/**

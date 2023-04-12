@@ -1,13 +1,15 @@
 import connectionDataSelectors from './connection-data';
 import jetpackSettingSelectors from './jetpack-settings';
-import sharesCountSelectors from './shares-count';
+import sharesDataSelectors from './shares-data';
 import siteDataSelectors from './site-data';
+import socialImageGeneratorSettingsSelectors from './social-image-generator-settings';
 
 const selectors = {
 	...siteDataSelectors,
 	...connectionDataSelectors,
 	...jetpackSettingSelectors,
-	...sharesCountSelectors,
+	...sharesDataSelectors,
+	...socialImageGeneratorSettingsSelectors,
 };
 
 export default selectors;

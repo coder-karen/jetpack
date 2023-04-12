@@ -2,6 +2,294 @@
 
 ### This is a list detailing changes for the Jetpack RNA Components package releases.
 
+## 0.31.4 - 2023-04-04
+### Changed
+- Updated package dependencies. [#29854]
+
+## 0.31.3 - 2023-04-03
+### Changed
+- Minor internal updates.
+
+## 0.31.2 - 2023-03-29
+### Changed
+- Minor internal updates.
+
+## 0.31.1 - 2023-03-28
+### Changed
+- Minor internal updates.
+
+## 0.31.0 - 2023-03-27
+### Changed
+- Added option for CUT component to have a tooltip [#29609]
+
+## 0.30.2 - 2023-03-23
+### Changed
+- Updated package dependencies.
+
+## 0.30.1 - 2023-03-20
+### Changed
+- RNA: tweak secondary button styling [#29475]
+- Updated package dependencies. [#29471]
+
+## 0.30.0 - 2023-03-13
+### Added
+- Add Zendesk chat module to My Jetpack page [#28712]
+
+### Changed
+- Updated pricing table component to allow a custom tooltip class. Will allow more flexibility over styling individual tooltips. [#29250]
+
+## 0.29.0 - 2023-03-08
+### Added
+- Add loading placeholder component into js-packages [#29270]
+
+### Changed
+- Updated package dependencies. [#29216]
+
+## 0.28.0 - 2023-02-28
+### Added
+- Added arrow-left and arrow-right icons to the Gridicon component [#28826]
+- JS Components: add Mastodon icon [#28987]
+- JS Components: add pricing-utils folder to store pricing-related helper functions. [#29139]
+
+### Fixed
+- Revise Jetpack connection agreement text to comply with our User Agreement [#28403]
+- Update React peer dependencies to match updated dev dependencies. [#28924]
+
+## 0.27.7 - 2023-02-20
+### Fixed
+- Changed wrong version [#28824]
+- Use External Link icons for external links [#28922]
+
+## 0.27.6 - 2023-02-15
+### Changed
+- Editing changelog for Jetpack 11.9-a.3 [#28971]
+
+### Fixed
+- Fixed a circular dependency reference [#28937]
+
+## 0.27.5 - 2023-02-15
+### Changed
+- Update to React 18. [#28710]
+
+## 0.27.4 - 2023-02-08
+### Changed
+- Updated package dependencies. [#28682, #28700]
+
+## 0.27.3 - 2023-01-26
+### Changed
+- Use `flex-start` instead of `start` for better browser compatibility. [#28530]
+
+## 0.27.2 - 2023-01-25
+### Changed
+- Minor internal updates.
+
+## 0.27.1 - 2023-01-23
+### Fixed
+- Components: Fix usage of box-sizing across the elements [#28489]
+
+## 0.27.0 - 2023-01-18
+### Added
+- Added Advanced Social plan to pricing table [#28258]
+
+## 0.26.5 - 2023-01-11
+### Changed
+- Updated package dependencies.
+
+## 0.26.4 - 2022-12-19
+### Added
+- Add Jetpack VaultPress Backup Logo [#27802]
+- Add Jetpack VideoPress logo [#27807]
+
+### Changed
+- Update Backup, Anti-spam, and VideoPress logos [#27847]
+- Updated package dependencies. [#27916]
+
+## 0.26.3 - 2022-12-12
+### Changed
+- Updated package dependencies. [#27888]
+
+## 0.26.2 - 2022-12-12
+### Added
+- RNA: Add props to ActionPopover related to link on action button [#27714]
+
+## 0.26.1 - 2022-12-02
+### Changed
+- Updated package dependencies. [#27699]
+
+## 0.26.0 - 2022-11-30
+### Added
+- RNA: Add ActionPopover component [#27656]
+
+## 0.25.2 - 2022-11-28
+### Changed
+- Updated package dependencies. [#27576]
+
+## 0.25.1 - 2022-11-22
+### Changed
+- Updated package dependencies. [#27043]
+
+## 0.25.0 - 2022-11-17
+### Added
+- Added additional color studio colors to the ThemeProvider component for use in Jetpack Protect. [#26069]
+- Added a new component for Admin Notices [#26736]
+
+### Fixed
+- Added support for falsey non-zero values for offPrice [#27456]
+- RNA: Add aria-disabled property to Button when disabled [#27449]
+
+## 0.24.5 - 2022-11-10
+### Changed
+- Updated package dependencies. [#27319]
+
+## 0.24.4 - 2022-11-08
+### Changed
+- Updated package dependencies. [#27289]
+
+## 0.24.3 - 2022-11-01
+### Changed
+- Updated package dependencies.
+
+## 0.24.2 - 2022-10-25
+### Changed
+- Fix visual issues in the Product Price component in Jetpack plugin [#27032]
+
+## 0.24.1 - 2022-10-19
+### Changed
+- RNA: move product labels next to `legend` text [#26877]
+- Updated package dependencies. [#26883]
+
+### Fixed
+- Fixed the tooltips being cut of on PricingTable [#26666]
+
+## 0.24.0 - 2022-10-17
+### Changed
+- Refactor IconTooltip with prop popoverAnchorStyle for alignment with Popover anchor. [#26851]
+
+## 0.23.0 - 2022-10-13
+### Changed
+- Add shadowAnchor and forceShow for pure Popover displaying within parent wrapper. [#26790]
+- Updated package dependencies. [#26791]
+
+## 0.22.2 - 2022-10-11
+### Changed
+- Added types and adaptive coloring for the donut meter component [#26690]
+
+### Fixed
+- RNA: Fix styling issue on Button component due to Gutenberg component update [#26704]
+
+## 0.22.1 - 2022-10-06
+### Changed
+- Do not open upgrade links from Jetpack Social in a new tab [#26649]
+- Update ContextualUpgradeTrigger component styles [#26633]
+
+## 0.22.0 - 2022-10-05
+### Added
+- Improve upon elements used within the PricingTable component [#26364]
+- Introduce JetpackSearchLogo component [#26481]
+- RNA: register jp-yellow-10 color in the ThemePrtovider [#26508]
+
+### Changed
+- Fix ProductPrice layout for long prices [#26595]
+- IconTooltip: Use click instead of mouseover for summoning [#26457]
+- Refactor props for structure consistency with JetpackLogo component. [#26510]
+- Updated package dependencies. [#26568]
+- Updated package dependencies. [#26583]
+
+### Fixed
+- Components: fix the positio of TOS component of the PricingTable cmp [#26509]
+- Fixed color and size per design for Indeterminate Progress Bar [#26458]
+- RNA: Scope global CSS modification on IconTooltip component [#26584]
+
+## 0.21.0 - 2022-09-27
+### Added
+- Added indeterminate progress bar [#26370]
+- Add support for link variant and className to ContextualUpgradeTrigger component [#26115]
+- JS Components: Add body-extra-small-bold variant to Text [#26295]
+
+### Changed
+- Changed design to latest design patterns. [#26253]
+- DonutMeter: Expose DonutMeter to clients of the component library. [#26371]
+- Modify components for usages in Upsell page [#26408]
+
+### Fixed
+- Fixed divider not appearing on small screens [#26443]
+
+## 0.20.0 - 2022-09-20
+### Added
+- Introduce component IconTooltip [#26081]
+
+### Changed
+- JS Components: Use RNA button for ActionButton component [#23936]
+
+### Fixed
+- Fixed bug preventing Pricing Table from building properly. [#26214]
+- JS Components: Add basic a11y support to donut meter. [#26129]
+
+## 0.19.0 - 2022-09-08
+### Added
+- Components: apply Icon Button styles when icon and not-text properties are provided. [#25999]
+- JS Components: add StatCard component. [#26037]
+- JS Components: add title-medium-semi-bold variant to Text. [#26017]
+- RecordMeterDonut: create RecordMeterDonut reusable component. [#25947]
+
+### Changed
+- JS Components: add options to numberFormat and format value as compact form on StatCard component. [#26065]
+
+## 0.18.2 - 2022-08-31
+### Changed
+- Updated package dependencies. [#25856]
+
+## 0.18.1 - 2022-08-25
+### Added
+- Components: Support forwardRef at Text [#25798]
+
+### Changed
+- Components: set background color for Button, secondary variant [#25810]
+- Updated package dependencies. [#25814]
+
+## 0.18.0 - 2022-08-23
+### Added
+- Add new PricingTable component [#25377]
+- Components: add a couple of new black and gray colors [#25730]
+
+### Changed
+- Updated package dependencies. [#25338, #25339, #25339, #25762, #25764]
+
+## 0.17.3 - 2022-08-09
+### Changed
+- JS Components: Convert AdminPage component to TypeScript [#25352]
+- JS Components: Convert AdminSection and AdminSectionHero components to TypeScript [#25360]
+- JS Components: Converted ThemeProvider component to TypeScript [#25353]
+- JS Components: Convert utility functions to TypeScript [#25361]
+
+## 0.17.2 - 2022-08-03
+### Added
+- JS Components: Add fullWidth prop to Button [#25357]
+- JS Components: Add hidePriceFraction prop to ProductPrice [#25318]
+
+### Changed
+- JS Components: Converted Col and Container components to TypeScript [#25325]
+- JS Components: Convert JetpackFooter component to TypeScript [#25295]
+- JS Components: Convert ProductOffer component to TypeScript [#25294]
+
+### Fixed
+- JS Components: Fix price render on ProductPrice when price is 0 [#25318]
+
+## 0.17.1 - 2022-07-29
+### Changed
+- JS Components: Converted AutomatticBylineLogo component to TypeScript
+- JS Components: Converted DecorativeCard component to TypeScript
+- JS Components: Converted icons to TypeScript
+- JS Components: Convert Gridicon to TypeScript
+
+## 0.17.0 - 2022-07-26
+### Added
+- Added missing color to ThemeProvider [#25147]
+
+### Changed
+- Converted PricingCard component to TypeScript [#24906]
+- Updated package dependencies. [#25158]
+
 ## 0.16.8 - 2022-07-19
 ### Changed
 - Updated package dependencies. [#24710]

@@ -118,7 +118,7 @@ class Jetpack_RelatedPosts {
 		add_action( 'wp', array( $this, 'action_frontend_init' ) );
 
 		if ( ! class_exists( 'Jetpack_Media_Summary' ) ) {
-			jetpack_require_lib( 'class.media-summary' );
+			require_once JETPACK__PLUGIN_DIR . '_inc/lib/class.media-summary.php';
 		}
 
 		// Add Related Posts to the REST API Post response.
@@ -138,8 +138,9 @@ class Jetpack_RelatedPosts {
 						'padding' => true,
 					),
 					'typography' => array(
-						'fontSize'   => true,
-						'lineHeight' => true,
+						'__experimentalFontFamily' => true,
+						'fontSize'                 => true,
+						'lineHeight'               => true,
 					),
 					'align'      => array( 'wide', 'full' ),
 				),
@@ -207,7 +208,6 @@ class Jetpack_RelatedPosts {
 
 			$this->action_frontend_init_page();
 		}
-
 	}
 
 	/**
@@ -507,7 +507,7 @@ EOT;
 		 * @param array $related_posts Array of related posts.
 		 * @param array $block_attributes Array of Block attributes.
 		 */
-		return apply_filters( 'jetpack_related_posts_display_markup', $display_markup, $post_id, $related_posts, $block_attributes );
+		return (string) apply_filters( 'jetpack_related_posts_display_markup', $display_markup, $post_id, $related_posts, $block_attributes );
 	}
 
 	/**
@@ -1580,18 +1580,23 @@ EOT;
 			}
 		}
 
+		$user_agent = '';
+		if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+			$user_agent = strtolower( filter_var( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) );
+		}
+
 		$response = wp_remote_post(
 			"https://public-api.wordpress.com/rest/v1/sites/{$this->get_blog_id()}/posts/$post_id/related/",
 			array(
 				'timeout'    => 10,
-				'user-agent' => 'jetpack_related_posts',
+				'user-agent' => "jetpack_related_posts, $user_agent",
 				'sslverify'  => true,
 				'body'       => $body,
 			)
 		);
 
-		// Oh no... return nothing don't cache errors.
-		if ( is_wp_error( $response ) ) {
+		// Oh no... return nothing don't cache errors. Also, don't cache HTTP 409 conflict responses.
+		if ( is_wp_error( $response ) || WP_Http::CONFLICT === wp_remote_retrieve_response_code( $response ) ) {
 			if ( isset( $cache[ $cache_key ] ) && is_array( $cache[ $cache_key ] ) ) {
 				return $cache[ $cache_key ]['payload']; // return stale.
 			} else {
@@ -1741,7 +1746,6 @@ EOT;
 	 * @param int $link_position - the link position.
 	 */
 	protected function log_click( $post_id, $to_post_id, $link_position ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-
 	}
 
 	/**

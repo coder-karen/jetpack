@@ -54,8 +54,12 @@ gb_setup() {
 }
 
 configure_wp_env() {
+	$BASE_CMD exec-silent -- chown -R www-data:www-data /var/www/html/wp-content/uploads
+	$BASE_CMD wp plugin status
+
 	$BASE_CMD wp plugin activate jetpack
 	$BASE_CMD wp plugin activate e2e-plan-data-interceptor
+	$BASE_CMD wp plugin activate e2e-waf-data-interceptor
 	$BASE_CMD wp plugin activate e2e-search-test-helper
 	if [ "${1}" == "--activate-plugins" ]; then
 		shift
@@ -66,8 +70,9 @@ configure_wp_env() {
 	fi
 	$BASE_CMD wp option set permalink_structure ""
 	$BASE_CMD wp jetpack module deactivate sso
-	$BASE_CMD wp theme activate twentytwentyone
 
+	echo
+	$BASE_CMD wp plugin status
 	echo
 	echo "WordPress is ready!"
 	echo

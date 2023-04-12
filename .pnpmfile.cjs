@@ -40,6 +40,21 @@ function fixDeps( pkg ) {
 		if ( pkg.dependencies[ '@types/webpack' ] ) {
 			pkg.dependencies[ '@types/webpack' ] = '^5';
 		}
+
+		// Same for some react deps, again fixed in v7.
+		if ( pkg.dependencies[ 'react-inspector' ] ) {
+			pkg.dependencies[ 'react-inspector' ] += ' || ^6';
+		}
+		if ( pkg.dependencies[ 'react-element-to-jsx-string' ] ) {
+			pkg.dependencies[ 'react-element-to-jsx-string' ] += ' || ^15';
+		}
+	}
+
+	// Undeclared dependency on prop-types.
+	// https://github.com/nutboltu/storybook-addon-mock/issues/157
+	if ( pkg.name === 'storybook-addon-mock' ) {
+		pkg.dependencies ||= {};
+		pkg.dependencies[ 'prop-types' ] = '*';
 	}
 
 	// Missing dep or peer dep on @wordpress/element.
@@ -55,12 +70,8 @@ function fixDeps( pkg ) {
 
 	// Missing dep or peer dep on @babel/runtime
 	// https://github.com/WordPress/gutenberg/issues/41343
-	// https://github.com/Automattic/wp-calypso/issues/64034 - Fixed, awaiting release.
-	// https://github.com/Automattic/wp-calypso/pull/64464
 	if (
-		( pkg.name === '@wordpress/reusable-blocks' ||
-			pkg.name === '@automattic/popup-monitor' ||
-			pkg.name === '@automattic/social-previews' ) &&
+		pkg.name === '@wordpress/reusable-blocks' &&
 		! pkg.dependencies?.[ '@babel/runtime' ] &&
 		! pkg.peerDependencies?.[ '@babel/runtime' ]
 	) {
@@ -78,30 +89,10 @@ function fixDeps( pkg ) {
 		}
 	}
 
-	// Override @types/react* dependencies in order to use their specific versions
-	// @todo This is probably not safe: https://github.com/Automattic/jetpack/pull/24294#discussion_r881708463
-	for ( const dep of [ '@types/react', '@types/react-dom', '@types/react-test-renderer' ] ) {
-		if ( pkg.dependencies?.[ dep ] ) {
-			pkg.dependencies[ dep ] = '17.x';
-		}
-	}
-
 	// Regular expression DOS.
 	// Dep is via storybook, fix in v7: https://github.com/storybookjs/storybook/issues/14603#issuecomment-1105006210
 	if ( pkg.dependencies.trim === '0.0.1' ) {
 		pkg.dependencies.trim = '^0.0.3';
-	}
-
-	// @octokit/plugin-paginate-rest included a breaking peer dependency change in v2.21.2.
-	// https://github.com/actions/toolkit/issues/1131
-	if (
-		pkg.name === '@actions/github' &&
-		pkg.dependencies[ '@octokit/plugin-paginate-rest' ]?.startsWith( '^2.' ) &&
-		pkg.dependencies[ '@octokit/core' ]?.startsWith( '^3.' )
-	) {
-		// This should be safe, as both major updates were just dropping node <12 support.
-		pkg.dependencies[ '@octokit/plugin-paginate-rest' ] = '^3';
-		pkg.dependencies[ '@octokit/core' ] = '^4';
 	}
 
 	// Avoid annoying flip-flopping of sub-dep peer deps.
@@ -125,6 +116,15 @@ function fixDeps( pkg ) {
 		delete pkg.dependencies[ '@testing-library/dom' ];
 	}
 
+	// Outdated dependency.
+	// No upstream bug link yet.
+	if (
+		pkg.name === '@automattic/social-previews' &&
+		pkg.dependencies[ '@wordpress/components' ] === '^19.15.0'
+	) {
+		pkg.dependencies[ '@wordpress/components' ] = '*';
+	}
+
 	return pkg;
 }
 
@@ -137,32 +137,48 @@ function fixDeps( pkg ) {
  * @returns {object} Modified pkg.
  */
 function fixPeerDeps( pkg ) {
-	// React 17 is entirely compatible with React 16, but of course abandoned packages exist...
-	const react16Pkgs = new Set( [
-		'react-dates', // @wordpress/components <https://github.com/WordPress/gutenberg/issues/21820?>
-		'airbnb-prop-types', // @wordpress/components → react-dates
-		'react-with-direction', // @wordpress/components → react-dates → react-with-styles
+	// Indirect deps that still depend on React <18.
+	const reactOldPkgs = new Set( [
+		// Still on 16.
 		'react-autosize-textarea', // @wordpress/block-editor <https://github.com/WordPress/gutenberg/issues/39619>
+
+		// Still on 17.
+		'reakit', // @wordpress/components
+		'reakit-system', // @wordpress/components → reakit
+		'reakit-utils', // @wordpress/components → reakit
+		'reakit-warning', // @wordpress/components → reakit
+		'@mdx-js/react',
+		'@automattic/components',
+		'@automattic/social-previews',
 	] );
-	if ( react16Pkgs.has( pkg.name ) ) {
+	if ( reactOldPkgs.has( pkg.name ) ) {
 		for ( const p of [ 'react', 'react-dom' ] ) {
+			if ( ! pkg.peerDependencies?.[ p ] ) {
+				continue;
+			}
+
 			if (
-				pkg.peerDependencies?.[ p ] &&
 				pkg.peerDependencies[ p ].match( /(?:^|\|\|\s*)(?:\^16|16\.x)/ ) &&
 				! pkg.peerDependencies[ p ].match( /(?:^|\|\|\s*)(?:\^17|17\.x)/ )
 			) {
 				pkg.peerDependencies[ p ] += ' || ^17';
 			}
+			if (
+				pkg.peerDependencies[ p ].match( /(?:^|\|\|\s*)(?:\^17|17\.x)/ ) &&
+				! pkg.peerDependencies[ p ].match( /(?:^|\|\|\s*)(?:\^18|18\.x)/ )
+			) {
+				pkg.peerDependencies[ p ] += ' || ^18';
+			}
 		}
 	}
 
-	// Missing peer dependency.
-	// https://github.com/Automattic/wp-calypso/pull/64238 - Fixed, awaiting release.
+	// Outdated peer dependency.
+	// No upstream bug link yet.
 	if (
-		pkg.name === 'eslint-plugin-wpcalypso' &&
-		! pkg.peerDependencies?.[ 'eslint-plugin-react' ]
+		pkg.name === '@automattic/components' &&
+		pkg.peerDependencies[ '@wordpress/data' ] === '^6.1.5'
 	) {
-		pkg.peerDependencies[ 'eslint-plugin-react' ] = '*';
+		pkg.peerDependencies[ '@wordpress/data' ] = '*';
 	}
 
 	return pkg;
@@ -192,6 +208,11 @@ function readPackage( pkg, context ) {
  * @returns {object} Modified lockfile.
  */
 function afterAllResolved( lockfile ) {
+	// If there's only one "importer", it's probably pnpx rather than the monorepo. Don't interfere.
+	if ( Object.keys( lockfile.importers ).length === 1 ) {
+		return lockfile;
+	}
+
 	for ( const [ k, v ] of Object.entries( lockfile.packages ) ) {
 		// Forbid installing webpack without webpack-cli. It results in lots of spurious lockfile changes.
 		// https://github.com/pnpm/pnpm/issues/3935

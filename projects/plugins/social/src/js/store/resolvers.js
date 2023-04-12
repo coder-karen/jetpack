@@ -1,14 +1,14 @@
 import { setJetpackSettings } from './actions/jetpack-settings';
-import { setPublicizeSharesCount } from './actions/shares-count';
-import { fetchJetpackSettings, fetchSharesCount } from './controls';
+import { setSocialImageGeneratorSettings } from './actions/social-image-generator-settings';
+import { fetchJetpackSettings, fetchSocialImageGeneratorSettings } from './controls';
 
 /**
- * Yield actions to get Publicize Module Status
+ * Yield actions to get the Jetpack settings.
  *
  * @yields {object} - an action object.
  * @returns {object} - an action object.
  */
-export function* getPublicizeModuleStatus() {
+export function* getJetpackSettings() {
 	try {
 		const settings = yield fetchJetpackSettings();
 		if ( settings ) {
@@ -21,16 +21,16 @@ export function* getPublicizeModuleStatus() {
 }
 
 /**
- * Yield actions to get Publicize Share Count
+ * Yield actions to get the Social Image Generator settings.
  *
  * @yields {object} - an action object.
  * @returns {object} - an action object.
  */
-export function* getPublicizeShareCount() {
+export function* getSocialImageGeneratorSettings() {
 	try {
-		const sharesCount = yield fetchSharesCount();
-		if ( sharesCount ) {
-			return setPublicizeSharesCount( sharesCount );
+		const settings = yield fetchSocialImageGeneratorSettings();
+		if ( settings ) {
+			return setSocialImageGeneratorSettings( settings );
 		}
 	} catch ( e ) {
 		// TODO: Add proper error handling here
@@ -38,4 +38,4 @@ export function* getPublicizeShareCount() {
 	}
 }
 
-export default { getPublicizeModuleStatus };
+export default { getJetpackSettings, getSocialImageGeneratorSettings };

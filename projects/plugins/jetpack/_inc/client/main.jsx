@@ -22,6 +22,7 @@ import NonAdminView from 'components/non-admin-view';
 import ReconnectModal from 'components/reconnect-modal';
 import SupportCard from 'components/support-card';
 import Tracker from 'components/tracker';
+import jQuery from 'jquery';
 import analytics from 'lib/analytics';
 import MyPlan from 'my-plan/index.jsx';
 import ProductDescriptions from 'product-descriptions';
@@ -33,13 +34,13 @@ import { Recommendations } from 'recommendations';
 import SearchableSettings from 'settings/index.jsx';
 import {
 	getSiteConnectionStatus,
+	getConnectedWpComUser,
 	isCurrentUserLinked,
 	isSiteConnected,
 	isConnectionOwner,
 	isConnectingUser,
 	resetConnectUser,
 	isReconnectingSite,
-	reconnectSite,
 	getConnectUrl,
 	getConnectingUserFeatureLabel,
 	getConnectionStatus,
@@ -63,6 +64,7 @@ import {
 	getInitialRecommendationsStep,
 	getPluginBaseUrl,
 	getPartnerCoupon,
+	isAtomicSite,
 	isWoASite,
 	isWooCommerceActive,
 } from 'state/initial-state';
@@ -82,22 +84,28 @@ import {
 	fetchSiteData as fetchSiteDataAction,
 	fetchSitePurchases as fetchSitePurchasesAction,
 } from 'state/site';
+import AgenciesCard from './components/agencies-card';
 
 const recommendationsRoutes = [
 	'/recommendations',
 	'/recommendations/site-type',
 	'/recommendations/product-suggestions',
 	'/recommendations/product-purchased',
+	'/recommendations/agency',
 	'/recommendations/woocommerce',
 	'/recommendations/monitor',
 	'/recommendations/related-posts',
 	'/recommendations/creative-mail',
 	'/recommendations/site-accelerator',
 	'/recommendations/publicize',
-	'/recommendations/security-plan',
+	'/recommendations/protect',
 	'/recommendations/anti-spam',
 	'/recommendations/videopress',
+	'/recommendations/backup-plan',
+	'/recommendations/boost',
 	'/recommendations/summary',
+	'/recommendations/vaultpress-backup',
+	'/recommendations/vaultpress-for-woocommerce',
 ];
 
 const dashboardRoutes = [ '/', '/dashboard', '/reconnect', '/my-plan', '/plans' ];
@@ -378,6 +386,8 @@ class Main extends React.Component {
 		}
 
 		if ( this.isMainConnectScreen() ) {
+			const searchParams = new URLSearchParams( location.search.split( '?' )[ 1 ] );
+
 			return (
 				<ConnectScreen
 					apiNonce={ this.props.apiNonce }
@@ -387,6 +397,7 @@ class Main extends React.Component {
 					assetBaseUrl={ this.props.pluginBaseUrl }
 					autoTrigger={ this.shouldAutoTriggerConnection() }
 					redirectUri="admin.php?page=jetpack"
+					from={ searchParams && searchParams.get( 'from' ) }
 				>
 					<p>
 						{ __(
@@ -396,7 +407,7 @@ class Main extends React.Component {
 					</p>
 
 					<ul>
-						<li>{ __( 'Measure your impact with beautiful stats', 'jetpack' ) }</li>
+						<li>{ __( 'Measure your impact with Jetpack Stats', 'jetpack' ) }</li>
 						<li>{ __( 'Speed up your site with optimized images', 'jetpack' ) }</li>
 						<li>{ __( 'Protect your site against bot attacks', 'jetpack' ) }</li>
 						<li>{ __( 'Get notifications if your site goes offline', 'jetpack' ) }</li>
@@ -485,16 +496,35 @@ class Main extends React.Component {
 			case '/recommendations/site-type':
 			case '/recommendations/product-suggestions':
 			case '/recommendations/product-purchased':
+			case '/recommendations/agency':
 			case '/recommendations/woocommerce':
 			case '/recommendations/monitor':
 			case '/recommendations/related-posts':
 			case '/recommendations/creative-mail':
 			case '/recommendations/site-accelerator':
 			case '/recommendations/publicize':
-			case '/recommendations/security-plan':
+			case '/recommendations/protect':
 			case '/recommendations/anti-spam':
 			case '/recommendations/videopress':
+			case '/recommendations/backup-plan':
+			case '/recommendations/boost':
 			case '/recommendations/summary':
+			case '/recommendations/vaultpress-backup':
+			case '/recommendations/vaultpress-for-woocommerce':
+			case '/recommendations/welcome-backup':
+			case '/recommendations/welcome-complete':
+			case '/recommendations/welcome-security':
+			case '/recommendations/welcome-antispam':
+			case '/recommendations/welcome-videopress':
+			case '/recommendations/welcome-search':
+			case '/recommendations/welcome-scan':
+			case '/recommendations/welcome-golden-token':
+			case '/recommendations/backup-activated':
+			case '/recommendations/scan-activated':
+			case '/recommendations/antispam-activated':
+			case '/recommendations/videopress-activated':
+			case '/recommendations/search-activated':
+			case '/recommendations/server-credentials':
 				if ( this.props.showRecommendations ) {
 					pageComponent = <Recommendations />;
 				} else {
@@ -541,6 +571,20 @@ class Main extends React.Component {
 		// Only show on the dashboard
 		return (
 			this.props.isSiteConnected &&
+			! this.shouldShowWooConnectionScreen() &&
+			dashboardRoutes.includes( this.props.location.pathname )
+		);
+	}
+
+	shouldShowAgenciesCard() {
+		const { site_count } = this.props.connectedWpComUser;
+
+		// Only show on dashboard when users are managing 2 or more sites
+		return (
+			this.props.userCanConnectSite &&
+			site_count >= 2 &&
+			this.props.isSiteConnected &&
+			! this.props.isAtomicSite &&
 			! this.shouldShowWooConnectionScreen() &&
 			dashboardRoutes.includes( this.props.location.pathname )
 		);
@@ -701,6 +745,9 @@ class Main extends React.Component {
 						message={ this.handleRouterWillLeave }
 					/>
 					{ this.renderMainContent( this.props.location.pathname ) }
+					{ this.shouldShowAgenciesCard() && (
+						<AgenciesCard path={ this.props.location.pathname } discountPercentage={ 25 } />
+					) }
 					{ this.shouldShowSupportCard() && <SupportCard path={ this.props.location.pathname } /> }
 					{ this.shouldShowAppsCard() && <AppsCard /> }
 				</div>
@@ -717,6 +764,7 @@ export default connect(
 			isOfflineMode: isOfflineMode( state ),
 			connectionStatus: getConnectionStatus( state ),
 			siteConnectionStatus: getSiteConnectionStatus( state ),
+			connectedWpComUser: getConnectedWpComUser( state ),
 			isLinked: isCurrentUserLinked( state ),
 			isConnectingUser: isConnectingUser( state ),
 			hasConnectedOwner: hasConnectedOwner( state ),
@@ -739,6 +787,7 @@ export default connect(
 			pluginBaseUrl: getPluginBaseUrl( state ),
 			connectUrl: getConnectUrl( state ),
 			connectingUserFeatureLabel: getConnectingUserFeatureLabel( state ),
+			isAtomicSite: isAtomicSite( state ),
 			isWoaSite: isWoASite( state ),
 			isWooCommerceActive: isWooCommerceActive( state ),
 			hasSeenWCConnectionModal: getHasSeenWCConnectionModal( state ),
@@ -752,9 +801,6 @@ export default connect(
 		},
 		clearUnsavedSettingsFlag: () => {
 			return dispatch( clearUnsavedSettingsFlag() );
-		},
-		reconnectSite: () => {
-			return dispatch( reconnectSite() );
 		},
 		setHasSeenWCConnectionModal: () => {
 			return dispatch( setHasSeenWCConnectionModal() );
