@@ -40,6 +40,10 @@ jobs:
     outputs:
       upgrade_check: ${{ steps.upgrade_check.outputs.id }}
     steps:
+      - name: Log info
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
       - uses: actions/checkout@v3
 
       - name: Get token
@@ -117,7 +121,7 @@ jobs:
             echo "$JSON"
             echo "::endgroup::"
             ZIPURL="$(jq -r '.artifacts[] | select( .name == "jetpack-build" ) | .archive_download_url' <<<"$JSON")"
-            PLUGINS="$(jq -r '.artifacts[] | select( .name == "plugins" )' <<<"$JSON")"
+            PLUGINS="$(jq -r '.artifacts[] | select( .name == "plugins.tsv" )' <<<"$JSON")"
             if [[ -n "$ZIPURL" ]]; then
               break
             fi
@@ -189,7 +193,7 @@ jobs:
     timeout-minutes: 15  # 2022-08-26: Successful runs seem to take about 6 minutes, but give some extra time for the downloads.
     services:
       db:
-        image: mariadb:latest
+        image: mariadb:lts
         env:
           MARIADB_ROOT_PASSWORD: wordpress
         ports:

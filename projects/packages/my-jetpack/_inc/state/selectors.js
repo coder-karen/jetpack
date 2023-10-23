@@ -9,18 +9,42 @@ export const getProduct = ( state, productId ) => {
 	const stateProduct = getProducts( state )?.[ productId ] || {};
 
 	const product = mapObjectKeysToCamel( stateProduct, true );
+	product.standalonePluginInfo = mapObjectKeysToCamel( product.standalonePluginInfo || {}, true );
 	product.pricingForUi = mapObjectKeysToCamel( product.pricingForUi || {}, true );
 	product.pricingForUi.introductoryOffer = product.pricingForUi.isIntroductoryOffer
 		? mapObjectKeysToCamel( product.pricingForUi.introductoryOffer, true )
 		: null;
+
+	// Camelize object keys for each tier in pricingForUi
+	if ( product.pricingForUi?.tiers ) {
+		product.pricingForUi.tiers = mapObjectKeysToCamel( product.pricingForUi.tiers, true );
+		product.pricingForUi.tiers = Object.keys( product.pricingForUi.tiers ).reduce(
+			( result, tierKey ) => {
+				const tier = mapObjectKeysToCamel( product.pricingForUi.tiers[ tierKey ], true ) || {};
+				result[ tierKey ] = {
+					...tier,
+					introductoryOffer: tier?.isIntroductoryOffer
+						? mapObjectKeysToCamel( tier?.introductoryOffer, true )
+						: null,
+				};
+				return result;
+			},
+			{}
+		);
+	}
+
 	product.features = product.features || [];
 	product.supportedProducts = product.supportedProducts || [];
 
 	product.pricingForUi.fullPricePerMonth =
-		Math.ceil( ( product.pricingForUi.fullPrice / 12 ) * 100 ) / 100;
+		product.pricingForUi.productTerm === 'year'
+			? Math.ceil( ( product.pricingForUi.fullPrice / 12 ) * 100 ) / 100
+			: product.pricingForUi.fullPrice;
 
 	product.pricingForUi.discountPricePerMonth =
-		Math.ceil( ( product.pricingForUi.discountPrice / 12 ) * 100 ) / 100;
+		product.pricingForUi.productTerm === 'year'
+			? Math.ceil( ( product.pricingForUi.discountPrice / 12 ) * 100 ) / 100
+			: product.pricingForUi.discountPrice;
 
 	return product;
 };
@@ -53,9 +77,24 @@ const productSelectors = {
 	getProductsThatRequiresUserConnection,
 };
 
+const productDataSelectors = {
+	getProductData: state => state.productData?.items || {},
+	isFetchingProductData: state => state.productData?.isFetching || false,
+};
+
 const purchasesSelectors = {
 	getPurchases: state => state.purchases?.items || [],
 	isRequestingPurchases: state => state.purchases?.isFetching || false,
+};
+
+const chatAvailabilitySelectors = {
+	getChatAvailability: state => state.chatAvailability.isAvailable,
+	isRequestingChatAvailability: state => state.chatAvailability.isFetching,
+};
+
+const chatAuthenticationSelectors = {
+	getChatAuthentication: state => state.chatAuthentication.jwt,
+	isRequestingChatAuthentication: state => state.chatAuthentication.isFetching,
 };
 
 const availableLicensesSelectors = {
@@ -83,7 +122,7 @@ const noticeSelectors = {
 };
 
 const getProductStats = ( state, productId ) => {
-	return state.stats?.items?.[ productId ] || null;
+	return state.stats?.items?.[ productId ];
 };
 
 const isFetchingProductStats = ( state, productId ) => {
@@ -95,13 +134,30 @@ const productStatsSelectors = {
 	isFetchingProductStats,
 };
 
+const getStatsCounts = state => {
+	return state.statsCounts?.data;
+};
+
+const isFetchingStatsCounts = state => {
+	return state.statsCounts?.isFetching || false;
+};
+
+const statsCountsSelectors = {
+	getStatsCounts,
+	isFetchingStatsCounts,
+};
+
 const selectors = {
 	...productSelectors,
 	...purchasesSelectors,
+	...chatAvailabilitySelectors,
+	...chatAuthenticationSelectors,
+	...productDataSelectors,
 	...availableLicensesSelectors,
 	...noticeSelectors,
 	...pluginSelectors,
 	...productStatsSelectors,
+	...statsCountsSelectors,
 };
 
 export default selectors;

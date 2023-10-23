@@ -206,7 +206,7 @@ class Image_CDN_Image {
 	 */
 	protected function get_resized_filename() {
 		$query_args = array(
-			'resize' => join(
+			'resize' => implode(
 				',',
 				array(
 					$this->get_width(),
@@ -262,5 +262,4 @@ class Image_CDN_Image {
 		$this->width  = (int) $dimensions['dst_w'];
 		$this->height = (int) $dimensions['dst_h'];
 	}
-
 }

@@ -2,6 +2,103 @@
 
 ### This is a list detailing changes for the Jetpack RNA Connection Component releases.
 
+## [0.30.4] - 2023-10-19
+### Changed
+- Updated package dependencies. [#33687]
+
+## [0.30.3] - 2023-10-17
+### Changed
+- Updated package dependencies. [#33646]
+
+## [0.30.2] - 2023-10-16
+### Changed
+- Updated package dependencies. [#33429, #33584]
+
+## [0.30.1] - 2023-10-10
+### Changed
+- Updated package dependencies. [#33428]
+
+## [0.30.0] - 2023-09-25
+### Added
+- Handle connection error codes and display proper error messages. Enabled for the "private network" error only at the moment. [#32898]
+
+## [0.29.10] - 2023-09-13
+### Changed
+- Updated package dependencies. [#33001]
+
+## [0.29.9] - 2023-09-04
+### Changed
+- Updated package dependencies. [#32803]
+- Updated package dependencies. [#32804]
+
+## [0.29.8] - 2023-08-21
+### Added
+- Better way to render initial state. [#32499]
+- Publish package to npmjs.com. [#32515]
+
+## 0.29.7 - 2023-08-09
+### Changed
+- Updated package dependencies. [#32166]
+
+## 0.29.6 - 2023-07-25
+### Changed
+- Updated package dependencies. [#31999]
+
+## 0.29.5 - 2023-07-18
+### Fixed
+- Minor internal updates. [#31684]
+
+## 0.29.4 - 2023-07-17
+### Changed
+- Updated package dependencies. [#31872]
+
+### Fixed
+- Reset connection errors upon successful Restore request. [#31618]
+
+## 0.29.3 - 2023-07-11
+### Changed
+- Updated package dependencies. [#31785]
+
+## 0.29.2 - 2023-07-05
+### Changed
+- Updated package dependencies. [#31659]
+
+## 0.29.1 - 2023-06-21
+### Changed
+- Updated package dependencies. [#31468]
+
+## 0.29.0 - 2023-06-15
+### Changed
+- Connection: always display connection button on connection screen. [#31196]
+
+## 0.28.0 - 2023-06-06
+### Changed
+- Update connection module to have an RNA option that updates the design [#31201]
+- Updated package dependencies. [#31129]
+
+## 0.27.1 - 2023-05-29
+### Added
+- Add logo prop to `ConnectScreen` and `ConnectScreenVisual` so we could use produucts logos similar to `ConnectScreenRequiredPlan` component. [#30886]
+
+## 0.27.0 - 2023-05-22
+### Added
+- Offline Mode handling. [#30570]
+
+## 0.26.6 - 2023-05-02
+### Changed
+- Updated package dependencies.
+
+### Fixed
+- Bring back accidentally removed auto-trigger for connection screen. [#30373]
+
+## 0.26.5 - 2023-04-25
+### Changed
+- Updated package dependencies. [#30015]
+
+## 0.26.4 - 2023-04-17
+### Changed
+- Updated package dependencies. [#30019]
+
 ## 0.26.3 - 2023-04-04
 ### Changed
 - Updated package dependencies. [#29854]
@@ -550,3 +647,12 @@
 
 - `Main` and `ConnectUser` components added.
 - `JetpackRestApiClient` API client added.
+
+[0.30.4]: https://github.com/Automattic/jetpack-connection-js/compare/v0.30.3...v0.30.4
+[0.30.3]: https://github.com/Automattic/jetpack-connection-js/compare/v0.30.2...v0.30.3
+[0.30.2]: https://github.com/Automattic/jetpack-connection-js/compare/v0.30.1...v0.30.2
+[0.30.1]: https://github.com/Automattic/jetpack-connection-js/compare/v0.30.0...v0.30.1
+[0.30.0]: https://github.com/Automattic/jetpack-connection-js/compare/v0.29.10...v0.30.0
+[0.29.10]: https://github.com/Automattic/jetpack-connection-js/compare/v0.29.9...v0.29.10
+[0.29.9]: https://github.com/Automattic/jetpack-connection-js/compare/v0.29.8...v0.29.9
+[0.29.8]: https://github.com/Automattic/jetpack-connection-js/compare/v0.29.7...v0.29.8

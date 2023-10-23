@@ -65,14 +65,14 @@ class Single_Quote_Endpoint extends Client_Portal_Endpoint {
 ?>
 		<div id="zerobs-proposal-<?php echo esc_attr( $quote_id ); ?> main" class="zerobs-proposal entry-content hentry" style="margin-bottom:50px;margin-top:0px;">
 
-			<div class="zerobs-proposal-body"><?php echo wp_kses( zeroBSCRM_io_WPEditor_DBToHTML( $quote_content ), $zbs->acceptable_html ); ?></div>
+			<div class="zerobs-proposal-body"><?php echo wp_kses( wpautop( $quote_content ), $zbs->acceptable_html ); ?></div>
 
 			<?php
 			if ( $acceptable ) {
 					// js-exposed success/failure messages
 					?>
 						<div id="zbs-quote-accepted-<?php echo esc_attr( $quote_id ) ?>" class="alert alert-success" style="display:none;margin-bottom:5em;">
-							<?php esc_html_e( 'Quote accepted, Thank you.', 'zero-bs-crm' ); ?>
+							<?php esc_html_e( 'Quote accepted. Thank you!', 'zero-bs-crm' ); ?>
 						</div>
 						<div id="zbs-quote-failed-<?php echo esc_attr( $quote_id ) ?>" class="alert alert-warning" style="display:none;margin-bottom:5em;">
 							<?php esc_html_e( 'Quote could not be accepted at this time.', 'zero-bs-crm' ); ?>
@@ -109,5 +109,4 @@ class Single_Quote_Endpoint extends Client_Portal_Endpoint {
 		wp_enqueue_script('jpcrm_public_proposal_js', plugins_url('/js/ZeroBSCRM.public.proposals'.wp_scripts_get_suffix().'.js',ZBS_ROOTFILE), array( 'jquery' ), $zbs->version);
 
 	}
-
 }

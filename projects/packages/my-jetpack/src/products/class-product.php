@@ -124,7 +124,9 @@ abstract class Product {
 			'title'                    => static::get_title(),
 			'description'              => static::get_description(),
 			'long_description'         => static::get_long_description(),
+			'tiers'                    => static::get_tiers(),
 			'features'                 => static::get_features(),
+			'features_by_tier'         => static::get_features_by_tier(),
 			'disclaimers'              => static::get_disclaimers(),
 			'status'                   => static::get_status(),
 			'pricing_for_ui'           => static::get_pricing_for_ui(),
@@ -135,10 +137,13 @@ abstract class Product {
 			'wpcom_product_slug'       => static::get_wpcom_product_slug(),
 			'requires_user_connection' => static::$requires_user_connection,
 			'has_required_plan'        => static::has_required_plan(),
+			'has_required_tier'        => static::has_required_tier(),
 			'manage_url'               => static::get_manage_url(),
+			'purchase_url'             => static::get_purchase_url(),
 			'post_activation_url'      => static::get_post_activation_url(),
 			'standalone_plugin_info'   => static::get_standalone_info(),
-			'class'                    => get_called_class(),
+			'class'                    => static::class,
+			'post_checkout_url'        => static::get_post_checkout_url(),
 		);
 	}
 
@@ -171,6 +176,15 @@ abstract class Product {
 	abstract public static function get_long_description();
 
 	/**
+	 * Get the tiers for the product
+	 *
+	 * @return boolean|string[] The slugs of the tiers (i.e. [ "free", "basic", "advanced" ]), or False if the product has no tiers.
+	 */
+	public static function get_tiers() {
+		return array();
+	}
+
+	/**
 	 * Get the internationalized features list
 	 *
 	 * @return array
@@ -178,11 +192,30 @@ abstract class Product {
 	abstract public static function get_features();
 
 	/**
+	 * Get the internationalized comparison of features grouped by each tier
+	 *
+	 * @return array
+	 */
+	public static function get_features_by_tier() {
+		return array();
+	}
+
+	/**
 	 * Get the product pricing
 	 *
 	 * @return array
 	 */
 	abstract public static function get_pricing_for_ui();
+
+	/**
+	 * Get the URL where the user can purchase the product iff it doesn't have an interstitial page in My Jetpack.
+	 *
+	 * @return ?string
+	 */
+	public static function get_purchase_url() {
+		// Declare as concrete method as most Jetpack products use an interstitial page within My Jetpack.
+		return null;
+	}
 
 	/**
 	 * Get the URL where the user manages the product
@@ -198,6 +231,15 @@ abstract class Product {
 	 */
 	public static function get_post_activation_url() {
 		return static::get_manage_url();
+	}
+
+	/**
+	 * Get the URL the user is taken after purchasing the product through the checkout
+	 *
+	 * @return ?string
+	 */
+	public static function get_post_checkout_url() {
+		return null;
 	}
 
 	/**
@@ -248,6 +290,15 @@ abstract class Product {
 	}
 
 	/**
+	 * Checks whether the current plan (or purchases) of the site already supports the tiers
+	 *
+	 * @return array Key/value pairs of tier slugs and whether they are supported or not.
+	 */
+	public static function has_required_tier() {
+		return array();
+	}
+
+	/**
 	 * Checks whether the product supports trial or not
 	 *
 	 * Returns true if it supports. Return false otherwise.
@@ -257,6 +308,15 @@ abstract class Product {
 	 * @return boolean
 	 */
 	public static function has_trial_support() {
+		return false;
+	}
+
+	/**
+	 * Checks whether the product can be upgraded to a different product.
+	 *
+	 * @return boolean
+	 */
+	public static function is_upgradable() {
 		return false;
 	}
 
@@ -306,6 +366,9 @@ abstract class Product {
 			// We only consider missing user connection an error when the Product is active.
 			if ( static::$requires_user_connection && ! ( new Connection_Manager() )->has_connected_owner() ) {
 				$status = 'error';
+			} elseif ( static::is_upgradable() ) {
+				// Upgradable plans should ignore whether or not they have the required plan.
+				$status = 'can_upgrade';
 			} elseif ( ! static::has_required_plan() ) { // We need needs_purchase here as well because some products we consider active without the required plan.
 				if ( static::has_trial_support() ) {
 					$status = 'needs_purchase_or_free';
@@ -491,5 +554,4 @@ abstract class Product {
 			}
 		}
 	}
-
 }

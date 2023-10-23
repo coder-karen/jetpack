@@ -1,24 +1,35 @@
 import { Button, Text } from '@automattic/jetpack-components';
 import { Dropdown } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { external, moreVertical } from '@wordpress/icons';
+import { moreVertical, download } from '@wordpress/icons';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { useCallback } from 'react';
 import useAnalytics from '../../hooks/use-analytics';
-import ActionButton, { PRODUCT_STATUSES } from './action-buton';
+import Card from '../card';
+import ActionButton, { PRODUCT_STATUSES } from './action-button';
+import Status from './status';
 import styles from './style.module.scss';
 
-const PRODUCT_STATUSES_LABELS = {
+export const PRODUCT_STATUSES_LABELS = {
 	[ PRODUCT_STATUSES.ACTIVE ]: __( 'Active', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.INACTIVE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.NEEDS_PURCHASE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE ]: __( 'Inactive', 'jetpack-my-jetpack' ),
 	[ PRODUCT_STATUSES.ERROR ]: __( 'Error', 'jetpack-my-jetpack' ),
+	[ PRODUCT_STATUSES.CAN_UPGRADE ]: __( 'Active', 'jetpack-my-jetpack' ),
 };
 
 /* eslint-disable react/jsx-no-bind */
-const Menu = ( { items = [], onManage } ) => {
+const Menu = ( {
+	items = [],
+	showInstall = false,
+	onInstall,
+	showActivate = false,
+	showDeactivate = false,
+	onActivate,
+	onDeactivate,
+} ) => {
 	return (
 		<Dropdown
 			className={ styles.dropdown }
@@ -48,18 +59,46 @@ const Menu = ( { items = [], onManage } ) => {
 							{ item?.label }
 						</Button>
 					) ) }
-					<Button
-						weight="regular"
-						fullWidth
-						variant="tertiary"
-						icon={ external }
-						onClick={ () => {
-							onClose();
-							onManage?.();
-						} }
-					>
-						{ __( 'Manage', 'jetpack-my-jetpack' ) }
-					</Button>
+					{ showInstall && (
+						<Button
+							weight="regular"
+							fullWidth
+							variant="tertiary"
+							icon={ download }
+							onClick={ () => {
+								onClose();
+								onInstall?.();
+							} }
+						>
+							{ __( 'Install Plugin', 'jetpack-my-jetpack' ) }
+						</Button>
+					) }
+					{ showActivate && (
+						<Button
+							weight="regular"
+							fullWidth
+							variant="tertiary"
+							onClick={ () => {
+								onClose();
+								onActivate?.();
+							} }
+						>
+							{ __( 'Activate Plugin', 'jetpack-my-jetpack' ) }
+						</Button>
+					) }
+					{ showDeactivate && (
+						<Button
+							weight="regular"
+							fullWidth
+							variant="tertiary"
+							onClick={ () => {
+								onClose();
+								onDeactivate?.();
+							} }
+						>
+							{ __( 'Deactivate Plugin', 'jetpack-my-jetpack' ) }
+						</Button>
+					) }
 				</>
 			) }
 		/>
@@ -67,47 +106,64 @@ const Menu = ( { items = [], onManage } ) => {
 };
 /* eslint-enable react/jsx-no-bind */
 
+Menu.propTypes = {
+	onActivate: PropTypes.func,
+	onDeactivate: PropTypes.func,
+	showActivate: PropTypes.bool,
+	showDeactivate: PropTypes.bool,
+	showInstall: PropTypes.bool,
+	items: PropTypes.arrayOf(
+		PropTypes.shape( {
+			label: PropTypes.string,
+			icon: PropTypes.node,
+			onClick: PropTypes.func,
+		} )
+	),
+	onInstall: PropTypes.func,
+};
+
+Menu.defaultProps = {
+	onActivate: () => {},
+	onDeactivate: () => {},
+	showActivate: false,
+	showDeactivate: false,
+};
+
 const ProductCard = props => {
 	const {
 		name,
 		description,
-		icon,
 		status,
 		onActivate,
-		onAdd,
-		onFixConnection,
-		onManage,
 		isFetching,
+		isInstallingStandalone,
+		isDeactivatingStandalone,
 		slug,
 		children,
+		// Menu Related
 		showMenu = false,
+		showActivateOption = false,
+		showDeactivateOption = false,
+		showInstallOption = false,
 		menuItems = [],
+		onInstallStandalone,
+		onActivateStandalone,
+		onDeactivateStandalone,
 	} = props;
-	const isActive = status === PRODUCT_STATUSES.ACTIVE;
+
+	const isActive = status === PRODUCT_STATUSES.ACTIVE || status === PRODUCT_STATUSES.CAN_UPGRADE;
 	const isError = status === PRODUCT_STATUSES.ERROR;
-	const isInactive = status === PRODUCT_STATUSES.INACTIVE;
 	const isAbsent =
 		status === PRODUCT_STATUSES.ABSENT || status === PRODUCT_STATUSES.ABSENT_WITH_PLAN;
 	const isPurchaseRequired =
 		status === PRODUCT_STATUSES.NEEDS_PURCHASE ||
 		status === PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE;
-	const flagLabel = PRODUCT_STATUSES_LABELS[ status ];
 
-	// If status is absent, we disable the menu
-	const menuIsActive = showMenu && ! isAbsent;
-
-	const containerClassName = classNames( styles.container, {
+	const containerClassName = classNames( {
 		[ styles.plugin_absent ]: isAbsent,
 		[ styles[ 'is-purchase-required' ] ]: isPurchaseRequired,
 		[ styles[ 'is-link' ] ]: isAbsent,
 		[ styles[ 'has-error' ] ]: isError,
-	} );
-
-	const statusClassName = classNames( styles.status, {
-		[ styles.active ]: isActive,
-		[ styles.inactive ]: isInactive || isPurchaseRequired,
-		[ styles.error ]: isError,
-		[ styles[ 'is-fetching' ] ]: isFetching,
 	} );
 
 	const { recordEvent } = useAnalytics();
@@ -125,19 +181,11 @@ const ProductCard = props => {
 	/**
 	 * Calls the passed function onAdd after firing Tracks event
 	 */
-	const addHandler = useCallback(
-		ev => {
-			if ( ev?.preventDefault ) {
-				ev.preventDefault();
-			}
-
-			recordEvent( 'jetpack_myjetpack_product_card_add_click', {
-				product: slug,
-			} );
-			onAdd();
-		},
-		[ slug, onAdd, recordEvent ]
-	);
+	const addHandler = useCallback( () => {
+		recordEvent( 'jetpack_myjetpack_product_card_add_click', {
+			product: slug,
+		} );
+	}, [ slug, recordEvent ] );
 
 	/**
 	 * Calls the passed function onManage after firing Tracks event
@@ -146,8 +194,7 @@ const ProductCard = props => {
 		recordEvent( 'jetpack_myjetpack_product_card_manage_click', {
 			product: slug,
 		} );
-		onManage();
-	}, [ slug, onManage, recordEvent ] );
+	}, [ slug, recordEvent ] );
 
 	/**
 	 * Calls the passed function onManage after firing Tracks event
@@ -156,28 +203,56 @@ const ProductCard = props => {
 		recordEvent( 'jetpack_myjetpack_product_card_fixconnection_click', {
 			product: slug,
 		} );
-		onFixConnection();
-	}, [ slug, onFixConnection, recordEvent ] );
+	}, [ slug, recordEvent ] );
 
-	const CardWrapper = isAbsent
-		? ( { children: wrapperChildren, ...cardProps } ) => (
-				<a { ...cardProps } href="#" onClick={ addHandler }>
-					{ wrapperChildren }
-				</a>
-		  )
-		: ( { children: wrapperChildren, ...cardProps } ) => (
-				<div { ...cardProps }>{ wrapperChildren }</div>
-		  );
+	/**
+	 * Use a Tracks event to count a standalone plugin install request
+	 */
+	const installStandaloneHandler = useCallback( () => {
+		recordEvent( 'jetpack_myjetpack_product_card_install_standalone_plugin_click', {
+			product: slug,
+		} );
+		onInstallStandalone();
+	}, [ slug, onInstallStandalone, recordEvent ] );
+
+	/**
+	 * Use a Tracks event to count a standalone plugin activation request
+	 */
+	const activateStandaloneHandler = useCallback( () => {
+		recordEvent( 'jetpack_myjetpack_product_card_activate_standalone_plugin_click', {
+			product: slug,
+		} );
+		onActivateStandalone();
+	}, [ slug, onActivateStandalone, recordEvent ] );
+
+	/**
+	 * Use a Tracks event to count a standalone plugin deactivation menu click
+	 */
+	const deactivateStandaloneHandler = useCallback( () => {
+		recordEvent( 'jetpack_myjetpack_product_card_deactivate_standalone_plugin_click', {
+			product: slug,
+		} );
+		onDeactivateStandalone();
+	}, [ slug, onDeactivateStandalone, recordEvent ] );
 
 	return (
-		<CardWrapper className={ containerClassName }>
-			<div className={ styles.title }>
-				<div className={ styles.name }>
-					<Text variant="title-medium">{ name }</Text>
-					{ menuIsActive && icon }
-				</div>
-				{ menuIsActive ? <Menu items={ menuItems } onManage={ onManage } /> : icon }
-			</div>
+		<Card
+			className={ containerClassName }
+			title={ name }
+			headerRightContent={
+				showMenu && (
+					<Menu
+						items={ menuItems }
+						showActivate={ showActivateOption }
+						showDeactivate={ showDeactivateOption }
+						onActivate={ activateStandaloneHandler }
+						onDeactivate={ deactivateStandaloneHandler }
+						showInstall={ showInstallOption }
+						onInstall={ installStandaloneHandler }
+					/>
+				)
+			}
+		>
 			{
 				// If is not active, no reason to use children
 				// Since we want user to take action if isn't active
@@ -195,15 +270,19 @@ const ProductCard = props => {
 					onActivate={ activateHandler }
 					onFixConnection={ fixConnectionHandler }
 					onManage={ manageHandler }
+					onAdd={ addHandler }
 					className={ styles.button }
 				/>
 				{ ! isAbsent && (
-					<Text variant="label" className={ statusClassName }>
-						{ flagLabel }
-					</Text>
+					<Status
+						status={ status }
+						isFetching={ isDeactivatingStandalone }
+						isInstallingStandalone={ isInstallingStandalone }
+						isDeactivatingStandalone={ isFetching }
+					/>
 				) }
 			</div>
-		</CardWrapper>
+		</Card>
 	);
 };
 
@@ -211,14 +290,27 @@ ProductCard.propTypes = {
 	children: PropTypes.node,
 	name: PropTypes.string.isRequired,
 	description: PropTypes.string.isRequired,
-	icon: PropTypes.element,
 	admin: PropTypes.bool.isRequired,
 	isFetching: PropTypes.bool,
-	onManage: PropTypes.func,
-	onFixConnection: PropTypes.func,
+	isInstallingStandalone: PropTypes.bool,
+	isDeactivatingStandalone: PropTypes.bool,
+	isManageDisabled: PropTypes.bool,
 	onActivate: PropTypes.func,
-	onAdd: PropTypes.func,
 	slug: PropTypes.string.isRequired,
+	showMenu: PropTypes.bool,
+	showActivateOption: PropTypes.bool,
+	showDeactivateOption: PropTypes.bool,
+	showInstallOption: PropTypes.bool,
+	menuItems: PropTypes.arrayOf(
+		PropTypes.shape( {
+			label: PropTypes.string,
+			icon: PropTypes.node,
+			onClick: PropTypes.func,
+		} )
+	),
+	onInstallStandalone: PropTypes.func,
+	onActivateStandalone: PropTypes.func,
+	onDeactivateStandalone: PropTypes.func,
 	status: PropTypes.oneOf( [
 		PRODUCT_STATUSES.ACTIVE,
 		PRODUCT_STATUSES.INACTIVE,
@@ -227,16 +319,20 @@ ProductCard.propTypes = {
 		PRODUCT_STATUSES.ABSENT_WITH_PLAN,
 		PRODUCT_STATUSES.NEEDS_PURCHASE,
 		PRODUCT_STATUSES.NEEDS_PURCHASE_OR_FREE,
+		PRODUCT_STATUSES.CAN_UPGRADE,
 	] ).isRequired,
 };
 
 ProductCard.defaultProps = {
-	icon: null,
 	isFetching: false,
-	onManage: () => {},
-	onFixConnection: () => {},
+	isInstallingStandalone: false,
+	isDeactivatingStandalone: false,
 	onActivate: () => {},
-	onAdd: () => {},
+	showMenu: false,
+	showActivateOption: false,
+	showDeactivateOption: false,
+	showInstallOption: false,
+	menuItems: [],
 };
 
 export { PRODUCT_STATUSES };

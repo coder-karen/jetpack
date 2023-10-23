@@ -34,6 +34,8 @@ class Setup_Test extends BaseTestCase {
 		$plan['features']['active'] = array( 'social-image-generator' );
 		update_option( Current_Plan::PLAN_OPTION, $plan, true );
 		add_filter( 'jetpack_active_modules', array( $this, 'mock_publicize_being_active' ) );
+		// Enable SIG.
+		( new Social_Image_Generator\Settings() )->set_enabled( true );
 		$this->sig = new Social_Image_Generator\Setup();
 		$this->sig->init();
 		// Mock site connection.
@@ -154,7 +156,7 @@ class Setup_Test extends BaseTestCase {
 	 */
 	public function test_token_request_has_required_information() {
 		$body = array_keys( Social_Image_Generator\get_token_body( 'one', 'two', 'three' ) );
-		$this->assertEquals( $body, array( 'text', 'image_url', 'template' ) );
+		$this->assertEquals( array( 'text', 'image_url', 'template' ), $body );
 	}
 
 	/**

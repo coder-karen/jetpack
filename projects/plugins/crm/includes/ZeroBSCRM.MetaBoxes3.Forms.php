@@ -270,7 +270,6 @@
             $zbs->pageMessages[] = $msg;
 
         }
-
     }
 
 
@@ -540,8 +539,6 @@
             return $form;
 
         }
-
-
     }
 
 
@@ -613,7 +610,6 @@
             <?php
 
         }
-
     }
 /* ======================================================
   / Forms embed v3 Metabox
@@ -665,7 +661,6 @@
                 echo $moreFinal;
 
         }
-
     }
 /* ======================================================
   / Forms get more fields v3 Metabox
@@ -724,7 +719,7 @@
 
                     <div class="zbs-form-actions-bottom zbs-objedit-actions-bottom">
 
-                        <button class="ui button green" type="button" id="zbs-edit-save"><?php esc_html_e("Update","zero-bs-crm"); ?> <?php esc_html_e("Form","zero-bs-crm"); ?></button>
+								<button class="ui button black" type="button" id="zbs-edit-save"><?php esc_html_e( 'Update', 'zero-bs-crm' ); ?> <?php esc_html_e( 'Form', 'zero-bs-crm' ); ?></button>
 
                         <?php
 
@@ -749,7 +744,7 @@
 
                     <div class="zbs-form-actions-bottom zbs-objedit-actions-bottom">
                         
-                        <button class="ui button green" type="button" id="zbs-edit-save"><?php esc_html_e("Save","zero-bs-crm"); ?> <?php esc_html_e("Form","zero-bs-crm"); ?></button>
+								<button class="ui button black" type="button" id="zbs-edit-save"><?php esc_html_e( 'Save', 'zero-bs-crm' ); ?> <?php esc_html_e( 'Form', 'zero-bs-crm' ); ?></button>
 
                     </div>
 
@@ -762,7 +757,6 @@
         } // html
 
         // saved via main metabox
-
     }
 
 

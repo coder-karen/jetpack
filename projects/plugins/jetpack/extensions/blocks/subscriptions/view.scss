@@ -1,3 +1,9 @@
+@import '@automattic/jetpack-base-styles/gutenberg-base-styles';
+
+@function x($var-name, $fallback) {
+	@return unquote("var(#{$var-name}, #{$fallback})");
+}
+
 .is-style-compact {
 	.wp-block-jetpack-subscriptions__button,
 	.wp-block-button__link {
@@ -23,9 +29,12 @@
 	}
 
 	.wp-block-jetpack-subscriptions__form,
-	form {
-		display: flex;
-		align-items: flex-start;
+	form  {
+
+		.wp-block-jetpack-subscriptions__form-elements {
+			display: flex;
+			align-items: flex-start;
+		}
 
 		.wp-block-jetpack-subscriptions__textfield .components-text-control__input,
 		.wp-block-jetpack-subscriptions__button,
@@ -80,8 +89,7 @@
 	}
 
 	&.wp-block-jetpack-subscriptions__use-newline {
-		.wp-block-jetpack-subscriptions__form,
-		form {
+		.wp-block-jetpack-subscriptions__form-elements {
 			display: block;
 		}
 

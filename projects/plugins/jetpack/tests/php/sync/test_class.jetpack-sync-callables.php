@@ -96,7 +96,6 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 
 	public function test_sync_callable_whitelist() {
 		add_filter( 'jetpack_set_available_extensions', array( $this, 'add_test_block' ) );
-		Jetpack_Gutenberg::init();
 		Blocks::jetpack_register_block( 'jetpack/test' );
 
 		$callables = array(
@@ -138,6 +137,7 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 			'wp_get_environment_type'          => wp_get_environment_type(),
 			'is_fse_theme'                     => Functions::get_is_fse_theme(),
 			'get_themes'                       => Functions::get_themes(),
+			'get_loaded_extensions'            => Functions::get_loaded_extensions(),
 		);
 
 		if ( function_exists( 'wp_cache_is_enabled' ) ) {
@@ -490,7 +490,13 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 			$this->assertIsArray( get_option( Urls::HTTPS_CHECK_OPTION_PREFIX . $callable ) );
 		}
 
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+
 		Sender::get_instance()->uninstall();
+
+		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 
 		foreach ( $url_callables as $callable ) {
 			$this->assertFalse( get_option( Urls::HTTPS_CHECK_OPTION_PREFIX . $callable ) );
@@ -749,6 +755,15 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 		foreach ( $wp_post_types as $post_type => $post_type_object ) {
 			$post_type_object->rest_controller_class = false;
 			$post_type_object->rest_controller       = null;
+			if ( isset( $post_type_object->revisions_rest_controller_class ) ) {
+				$post_type_object->revisions_rest_controller_class = false;
+			}
+			if ( isset( $post_type_object->autosave_rest_controller_class ) ) {
+				$post_type_object->autosave_rest_controller_class = false;
+			}
+			if ( isset( $post_type_object->late_route_registration ) ) {
+				$post_type_object->late_route_registration = false;
+			}
 			if ( ! isset( $post_type_object->supports ) ) {
 				$post_type_object->supports = array();
 			}
@@ -985,7 +1000,7 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 			'rewrite',
 		);
 		foreach ( $check_object_vars as $test ) {
-			$this->assertObjectHasAttribute( $test, $taxonomy, "Taxonomy does not have expected {$test} attribute." );
+			$this->assertObjectHasProperty( $test, $taxonomy, "Taxonomy does not have expected {$test} attribute." );
 		}
 	}
 
@@ -1085,7 +1100,7 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 			'80',
 			'/xmlrpc.php',
 		);
-		$normalize                 = join( "\n", $normalized_request_pieces ) . "\n";
+		$normalize                 = implode( "\n", $normalized_request_pieces ) . "\n";
 
 		$_GET['signature'] = base64_encode( hash_hmac( 'sha1', $normalize, 'secret', true ) );
 
@@ -1197,7 +1212,7 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 	 * @return void
 	 */
 	public function test_get_hosting_provider_callable_with_unknown_host() {
-		$this->assertEquals( Functions::get_hosting_provider(), 'unknown' );
+		$this->assertEquals( 'unknown', Functions::get_hosting_provider() );
 	}
 
 	/**
@@ -1357,7 +1372,6 @@ class WP_Test_Jetpack_Sync_Functions extends WP_Test_Jetpack_Sync_Base {
 		$functions = new Functions();
 		$this->assertEquals( $main_network_wpcom_id, $functions->main_network_site_wpcom_id() );
 	}
-
 }
 
 /**

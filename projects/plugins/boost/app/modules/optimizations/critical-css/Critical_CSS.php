@@ -6,6 +6,7 @@ use Automattic\Jetpack_Boost\Admin\Regenerate_Admin_Notice;
 use Automattic\Jetpack_Boost\Contracts\Pluggable;
 use Automattic\Jetpack_Boost\Lib\Critical_CSS\Admin_Bar_Compatibility;
 use Automattic\Jetpack_Boost\Lib\Critical_CSS\Critical_CSS_Invalidator;
+use Automattic\Jetpack_Boost\Lib\Critical_CSS\Critical_CSS_State;
 use Automattic\Jetpack_Boost\Lib\Critical_CSS\Critical_CSS_Storage;
 use Automattic\Jetpack_Boost\Lib\Critical_CSS\Display_Critical_CSS;
 use Automattic\Jetpack_Boost\Lib\Critical_CSS\Source_Providers\Source_Providers;
@@ -48,6 +49,8 @@ class Critical_CSS implements Pluggable, Has_Endpoints {
 	 */
 	public function setup() {
 		add_action( 'wp', array( $this, 'display_critical_css' ) );
+		add_filter( 'jetpack_boost_total_problem_count', array( $this, 'update_total_problem_count' ) );
+		add_filter( 'query_vars', array( '\Automattic\Jetpack_Boost\Modules\Optimizations\Critical_CSS\Generator', 'add_generate_query_action_to_list' ) );
 
 		if ( Generator::is_generating_critical_css() ) {
 			add_action( 'wp_head', array( $this, 'display_generate_meta' ), 0 );
@@ -72,7 +75,7 @@ class Critical_CSS implements Pluggable, Has_Endpoints {
 	 */
 	public function display_generate_meta() {
 		?>
-		<meta name="jb-generate-critical-css" content="true"/>
+		<meta name="<?php echo esc_attr( Generator::GENERATE_QUERY_ACTION ); ?>" content="true"/>
 		<?php
 	}
 
@@ -131,5 +134,9 @@ class Critical_CSS implements Pluggable, Has_Endpoints {
 			Critical_CSS_Insert::class,
 			Critical_CSS_Start::class,
 		);
+	}
+
+	public function update_total_problem_count( $count ) {
+		return ( new Critical_CSS_State() )->has_errors() ? ++$count : $count;
 	}
 }

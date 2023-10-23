@@ -7,7 +7,7 @@ require_once JETPACK__PLUGIN_DIR . 'modules/memberships/class-jetpack-membership
 require_once __DIR__ . '/class-test-jetpack-token-subscription-service.php';
 
 use Automattic\Jetpack\Extensions\Premium_Content\JWT;
-use \Tests\Automattic\Jetpack\Extensions\Premium_Content\Test_Jetpack_Token_Subscription_Service;
+use Tests\Automattic\Jetpack\Extensions\Premium_Content\Test_Jetpack_Token_Subscription_Service;
 use function Automattic\Jetpack\Extensions\Premium_Content\current_visitor_can_access;
 use function Automattic\Jetpack\Extensions\Premium_Content\subscription_service;
 use const Automattic\Jetpack\Extensions\Premium_Content\PAYWALL_FILTER;
@@ -19,8 +19,7 @@ class WP_Test_Jetpack_Premium_Content extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		Jetpack_Subscriptions::init();
-		add_filter( 'test_jetpack_is_supported_jetpack_recurring_payments', '__return_true' );
-
+		add_filter( 'jetpack_is_connection_ready', '__return_true' );
 		add_filter(
 			PAYWALL_FILTER,
 			function () {
@@ -32,7 +31,7 @@ class WP_Test_Jetpack_Premium_Content extends WP_UnitTestCase {
 	public function tear_down() {
 		// Clean up
 		remove_all_filters( 'earn_get_user_subscriptions_for_site_id' );
-		remove_all_filters( 'test_jetpack_is_supported_jetpack_recurring_payments' );
+		remove_all_filters( 'jetpack_is_connection_ready' );
 		remove_all_filters( PAYWALL_FILTER );
 		parent::tear_down();
 	}

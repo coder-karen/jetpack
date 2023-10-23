@@ -228,7 +228,6 @@ class zeroBSCRM_TagManager{
 
                         ?>
 
-                        <div class="ui divider"></div>
                         <?php ##WLREMOVE ?>
                         <?php echo $this->extraBoxes; ?>
                         <?php ##/WLREMOVE ?>
@@ -283,7 +282,6 @@ class zeroBSCRM_TagManager{
             };
             var zbsDrawEditViewBlocker = false;
             var zbsDrawEditAJAXBlocker = false;
-            var zbsDrawEditLoadingBoxHTML = '<?php echo esc_html( zeroBSCRM_UI2_loadingSegmentIncTextHTML() ); ?>';
             var zbsObjectViewLinkPrefixCustomer = '<?php echo jpcrm_esc_link( 'view', -1, 'zerobs_customer', true ); ?>';
             var zbsObjectEditLinkPrefixCustomer = '<?php echo jpcrm_esc_link( 'edit', -1, 'zerobs_customer', true ); ?>';
             var zbsObjectViewLinkPrefixCompany = '<?php echo jpcrm_esc_link( 'view', -1, 'zerobs_company', true ); ?>';
@@ -309,5 +307,4 @@ class zeroBSCRM_TagManager{
                     echo "var zbscrmjs_secToken = '" . esc_js( wp_create_nonce( 'zbscrmjs-ajax-nonce' ) ) . "';"; ?></script><?php
 
     } // /draw func
-
 } // class

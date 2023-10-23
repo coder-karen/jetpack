@@ -9,35 +9,37 @@ import {
 	getUserLocale,
 } from '@automattic/jetpack-components';
 import { useConnectionErrorNotice, ConnectionError } from '@automattic/jetpack-connection';
+import { SOCIAL_STORE_ID } from '@automattic/jetpack-publicize-components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { Icon, postList } from '@wordpress/icons';
-import { STORE_ID } from '../../store';
 import ShareCounter from '../share-counter';
 import StatCards from '../stat-cards';
 import styles from './styles.module.scss';
 
 const Header = () => {
 	const {
-		hasConnections,
-		isModuleEnabled,
 		connectionsAdminUrl,
-		sharesCount,
-		postsCount,
-		isShareLimitEnabled,
+		hasConnections,
 		hasPaidPlan,
+		isModuleEnabled,
+		isShareLimitEnabled,
+		newPostUrl,
+		postsCount,
+		sharesCount,
 		siteSuffix,
 	} = useSelect( select => {
-		const store = select( STORE_ID );
+		const store = select( SOCIAL_STORE_ID );
 		return {
-			hasConnections: store.hasConnections(),
-			isModuleEnabled: store.isModuleEnabled(),
 			connectionsAdminUrl: store.getConnectionsAdminUrl(),
-			sharesCount: select( STORE_ID ).getSharesCount(),
-			postsCount: select( STORE_ID ).getPostsCount(),
-			isShareLimitEnabled: select( STORE_ID ).isShareLimitEnabled(),
-			hasPaidPlan: select( STORE_ID ).hasPaidPlan(),
-			siteSuffix: select( STORE_ID ).getSiteSuffix(),
+			hasConnections: store.hasConnections(),
+			hasPaidPlan: select( SOCIAL_STORE_ID ).hasPaidPlan(),
+			isModuleEnabled: store.isModuleEnabled(),
+			isShareLimitEnabled: select( SOCIAL_STORE_ID ).isShareLimitEnabled(),
+			newPostUrl: `${ store.getAdminUrl() }post-new.php`,
+			postsCount: select( SOCIAL_STORE_ID ).getPostsCount(),
+			sharesCount: select( SOCIAL_STORE_ID ).getSharesCount(),
+			siteSuffix: select( SOCIAL_STORE_ID ).getSiteSuffix(),
 		};
 	} );
 	const { hasConnectionError } = useConnectionErrorNotice();
@@ -68,7 +70,7 @@ const Header = () => {
 								{ __( 'Connect accounts', 'jetpack-social' ) }
 							</Button>
 						) }
-						<Button href={ '/wp-admin/post-new.php' } variant="secondary">
+						<Button href={ newPostUrl } variant="secondary">
 							{ __( 'Write a post', 'jetpack-social' ) }
 						</Button>
 					</div>
@@ -84,7 +86,7 @@ const Header = () => {
 									'jetpack-social'
 								) }
 								cta={ __( 'Get a Jetpack Social Plan', 'jetpack-social' ) }
-								href={ getRedirectUrl( 'jetpack-social-basic-plan-plugin-admin-page', {
+								href={ getRedirectUrl( 'jetpack-social-admin-page-upsell', {
 									site: siteSuffix,
 									query: 'redirect_to=' + window.location.href,
 								} ) }

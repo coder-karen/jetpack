@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report issues with one of our products.
-labels: [ 'Needs triage', '[Type] Bug', 'User Report' ]
+labels: [ 'Needs triage', '[Type] Bug' ]
 body:
   - type: markdown
     attributes:
@@ -29,13 +29,13 @@ body:
         - CRM
         - Debug Helper
         - Migration
+        - mu wpcom
         - Protect
         - Search
         - Social
         - Super Cache
         - VaultPress
         - VideoPress
-        - WordPress.com Features (mu-wpcom)
         - None / Other
       multiple: true
     validations:

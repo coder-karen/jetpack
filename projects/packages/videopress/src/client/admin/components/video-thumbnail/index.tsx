@@ -6,6 +6,7 @@ import {
 	Button,
 	useBreakpointMatch,
 	LoadingPlaceholder,
+	ProgressBar,
 } from '@automattic/jetpack-components';
 import { Dropdown } from '@wordpress/components';
 import { gmdateI18n } from '@wordpress/date';
@@ -16,7 +17,6 @@ import { forwardRef } from 'react';
 /**
  * Internal dependencies
  */
-import ProgressBar from '../progress-bar';
 import styles from './style.module.scss';
 /**
  * Types
@@ -238,5 +238,6 @@ const VideoThumbnail = forwardRef< HTMLDivElement, VideoThumbnailProps >(
 		);
 	}
 );
+VideoThumbnail.displayName = 'VideoThumbnail';
 
 export default VideoThumbnail;

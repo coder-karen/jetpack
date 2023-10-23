@@ -228,6 +228,9 @@ async function addVendorFilesToFilter( source, filters ) {
  */
 async function rsyncToDest( source, dest, pluginDestPath ) {
 	const filters = new Set();
+
+	// Exclude any `.git` dirs, mostly in case someone ran composer with --prefer-source (or composer fell back to that).
+	filters.add( '- .git' );
 	// To catch files required in dev builds.
 	await addVendorFilesToFilter( `${ source }/vendor/`, filters );
 	await buildFilterRules( source, '', filters );
@@ -248,6 +251,31 @@ async function rsyncToDest( source, dest, pluginDestPath ) {
 			source,
 			dest,
 		] );
+
+		console.log( '\n' );
+		console.log(
+			chalk.black.bgYellow(
+				'*************************************************************************************'
+			)
+		);
+		console.log(
+			chalk.black.bgYellow(
+				'**  Make sure you have set ' +
+					chalk.bold( "define( 'JETPACK_AUTOLOAD_DEV', true );" ) +
+					' in a mu-plugin  **'
+			)
+		);
+		console.log(
+			chalk.black.bgYellow(
+				'**  on the remote site. Otherwise the wrong versions of packages may be loaded!    **'
+			)
+		);
+		console.log(
+			chalk.black.bgYellow(
+				'*************************************************************************************'
+			)
+		);
+		console.log( '\n' );
 
 		await promptForRsyncConfig( pluginDestPath );
 	} catch ( e ) {

@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.30] - 2023-10-17
+### Changed
+- Updated package dependencies. [#33646]
+
+## [1.0.29] - 2023-10-16
+### Changed
+- Updated package dependencies. [#33429]
+
+## [1.0.28] - 2023-09-13
+### Changed
+- Updated package dependencies. [#33001]
+
+### Fixed
+- Handle calls like `(0,i18n.__)( 'foo', 'domain' )` that are sometimes generated to ensure use of the global "this". [#33001]
+
+## [1.0.27] - 2023-09-04
+### Changed
+- Updated package dependencies. [#32804]
+
+### Removed
+- Remove unnecessary files from mirror repo and published package. [#32674]
+
+### Fixed
+- Fix incorrectly copy-pasted package name in readme. [#32761]
+
+## [1.0.26] - 2023-07-17
+### Changed
+- Updated package dependencies. [#31872]
+
+## [1.0.25] - 2023-05-02
+### Changed
+- Updated package dependencies. [#30376]
+
+## [1.0.24] - 2023-04-17
+### Changed
+- Updated package dependencies. [#30019]
+
 ## [1.0.23] - 2023-03-08
 ### Changed
 - Updated package dependencies. [#29289]
@@ -106,6 +143,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release.
 - Replace missing domains too.
 
+[1.0.30]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.29...v1.0.30
+[1.0.29]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.28...v1.0.29
+[1.0.28]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.27...v1.0.28
+[1.0.27]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.26...v1.0.27
+[1.0.26]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.25...v1.0.26
+[1.0.25]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.24...v1.0.25
+[1.0.24]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.23...v1.0.24
 [1.0.23]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.22...v1.0.23
 [1.0.22]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.21...v1.0.22
 [1.0.21]: https://github.com/Automattic/babel-plugin-replace-textdomain/compare/v1.0.20...v1.0.21

@@ -5,11 +5,14 @@ import api from '../api/api';
 import { startPollingCloudStatus } from '../utils/cloud-css';
 import generateCriticalCss from '../utils/generate-critical-css';
 import { CriticalCssStateSchema } from './critical-css-state-types';
-import { client, JSONObject, suggestRegenerateDS } from './data-sync-client';
-import { isModuleEnabledStore } from './modules';
+import { jetpack_boost_ds, JSONObject, suggestRegenerateDS } from './data-sync-client';
+import { modulesState } from './modules';
 import type { CriticalCssState, Provider } from './critical-css-state-types';
 
-const stateClient = client.createAsyncStore( 'critical_css_state', CriticalCssStateSchema );
+const stateClient = jetpack_boost_ds.createAsyncStore(
+	'critical_css_state',
+	CriticalCssStateSchema
+);
 const cssStateStore = stateClient.store;
 
 export const criticalCssState = {
@@ -59,11 +62,14 @@ export const isFatalError = derived(
 );
 
 export const isGenerating = derived(
-	[ cssStateStore, isModuleEnabledStore( 'critical_css' ), isModuleEnabledStore( 'cloud_css' ) ],
-	( [ $criticalCssState, $criticalCssEnabled, $cloudCssEnabled ] ) => {
+	[ cssStateStore, modulesState ],
+	( [ $criticalCssState, $modulesState ] ) => {
 		const statusIsRequesting = $criticalCssState.status === 'pending';
 
-		return statusIsRequesting && ( $criticalCssEnabled || $cloudCssEnabled );
+		return (
+			statusIsRequesting &&
+			( $modulesState.cloud_css.active || $modulesState.critical_css.available )
+		);
 	}
 );
 
@@ -147,7 +153,10 @@ export const refreshCriticalCssState = async () => {
 
 export const regenerateCriticalCss = async () => {
 	// Clear regeneration suggestions
-	suggestRegenerateDS.store.set( false );
+	suggestRegenerateDS.store.set( null );
+
+	// Immediately set the status to pending to disable the regenerate button
+	replaceCssState( { status: 'pending' } );
 
 	// This will clear the CSS from the database
 	// And return fresh nonce, provider and viewport data.
@@ -162,12 +171,12 @@ export const regenerateCriticalCss = async () => {
 	// This will update the store without triggering a save back to the server.
 	cssStateStore.override( freshState );
 
-	const $isCloudCssEnabled = get( isModuleEnabledStore( 'cloud_css' ) ) || false;
+	const isCloudCssEnabled = get( modulesState ).cloud_css?.active || false;
 
-	if ( $isCloudCssEnabled ) {
+	if ( isCloudCssEnabled ) {
 		startPollingCloudStatus();
 	} else {
-		await regenerateLocalCriticalCss( freshState );
+		await continueGeneratingLocalCriticalCss( freshState );
 	}
 };
 
@@ -177,7 +186,10 @@ export const regenerateCriticalCss = async () => {
  *
  * @param state
  */
-export async function regenerateLocalCriticalCss( state: CriticalCssState ) {
+export async function continueGeneratingLocalCriticalCss( state: CriticalCssState ) {
+	if ( state.status === 'generated' ) {
+		return;
+	}
 	const generatingSucceeded = await generateCriticalCss( state );
 	const status = generatingSucceeded ? 'generated' : 'error';
 	replaceCssState( { status } );

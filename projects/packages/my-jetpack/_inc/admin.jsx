@@ -17,6 +17,7 @@ import {
 	BoostInterstitial,
 	CRMInterstitial,
 	ExtrasInterstitial,
+	JetpackAIInterstitial,
 	ProtectInterstitial,
 	ScanInterstitial,
 	SocialInterstitial,
@@ -54,12 +55,14 @@ const MyJetpack = () => (
 				<Route path="/add-backup" element={ <BackupInterstitial /> } />
 				<Route path="/add-boost" element={ <BoostInterstitial /> } />
 				<Route path="/add-crm" element={ <CRMInterstitial /> } />
+				<Route path="/add-jetpack-ai" element={ <JetpackAIInterstitial /> } />
 				<Route path="/add-extras" element={ <ExtrasInterstitial /> } />
 				<Route path="/add-protect" element={ <ProtectInterstitial /> } />
 				<Route path="/add-scan" element={ <ScanInterstitial /> } />
 				<Route path="/add-social" element={ <SocialInterstitial /> } />
 				<Route path="/add-search" element={ <SearchInterstitial /> } />
 				<Route path="/add-videopress" element={ <VideoPressInterstitial /> } />
+				<Route path="/add-stats" element={ <Navigate replace to="/connection" /> } />
 				{ window?.myJetpackInitialState?.loadAddLicenseScreen && (
 					<Route path="/add-license" element={ <AddLicenseScreen /> } />
 				) }
@@ -78,12 +81,7 @@ function render() {
 		return;
 	}
 
-	// @todo: Remove fallback when we drop support for WP 6.1
-	if ( WPElement.createRoot ) {
-		WPElement.createRoot( container ).render( <MyJetpack /> );
-	} else {
-		WPElement.render( <MyJetpack />, container );
-	}
+	WPElement.createRoot( container ).render( <MyJetpack /> );
 }
 
 render();

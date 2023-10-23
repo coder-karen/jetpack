@@ -1,146 +1,84 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { derived, get, writable } from 'svelte/store';
 	import { Snackbar } from '@wordpress/components';
 	import ActivateLicense from '../../elements/ActivateLicense.svelte';
 	import ReactComponent from '../../elements/ReactComponent.svelte';
 	import { BoostPricingTable } from '../../react-components/BoostPricingTable';
+	import Footer from '../../sections/Footer.svelte';
 	import Header from '../../sections/Header.svelte';
-	import config, { markGetStartedComplete } from '../../stores/config';
-	import { connection } from '../../stores/connection';
-	import { updateModuleState } from '../../stores/modules';
+	import { initializeConnection, getUpgradeURL } from '../../stores/connection';
 	import { recordBoostEvent } from '../../utils/analytics';
-	import { getUpgradeURL } from '../../utils/upgrade';
-
-	$: pricing = $config.pricing;
 
 	// svelte-ignore unused-export-let - Ignored values supplied by svelte-navigator.
 	export let navigate, location;
+	export let userConnected: boolean;
+	export let pricing: ( typeof Jetpack_Boost )[ 'pricing' ];
+	export let isPremium: boolean;
+	export let domain: string;
 
-	let initiatingFreePlan = false;
-	let initiatingPaidPlan = false;
-	const dismissedSnackbar = writable( false );
+	let snackbarMessage: string;
+	let selectedPlan: 'free' | 'premium' | false = false;
+	$: if ( selectedPlan !== false ) {
+		initialize( selectedPlan );
+	}
 
-	const snackbarMessage = derived(
-		[ connection, dismissedSnackbar ],
-		( [ $connection, $dismissedSnackbar ] ) => {
-			if ( ! $dismissedSnackbar && ! $connection.connected && $connection.error?.message ) {
-				return $connection.error.message;
+	async function initialize( plan: 'free' | 'premium' ) {
+		try {
+			// Make sure there is a Jetpack connection
+			await initializeConnection();
+
+			// Record this selection. This must be done after the connection is initialized.
+			// Possible Events:
+			// * free_cta_from_getting_started_page_in_plugin
+			// * premium_cta_from_getting_started_page_in_plugin
+			recordBoostEvent( `${ plan }_cta_from_getting_started_page_in_plugin`, {} );
+
+			// Go to the purchase flow if the user doesn't have a premium plan.
+			if ( ! isPremium && plan === 'premium' ) {
+				window.location.href = getUpgradeURL( domain, userConnected );
 			}
-
-			return null;
-		}
-	);
-
-	const ensureConnection = async () => {
-		let connectionStore;
-		connection.subscribe( value => {
-			connectionStore = value;
-		} );
-
-		if ( connectionStore.connected ) {
-			return;
-		}
-
-		await connection.initialize();
-
-		if ( ! connectionStore.connected ) {
-			throw connectionStore.error;
-		}
-	};
-
-	const chooseFreePlan = async () => {
-		initiatingFreePlan = true;
-
-		await Promise.all( [
-			recordBoostEvent( 'free_cta_from_getting_started_page_in_plugin', {} ),
-			await ( async () => {
-				try {
-					await ensureConnection();
-
-					// Allow opening the boost settings page. The actual flag is changed in the backend by enabling the critical-css module below.
-					markGetStartedComplete();
-
-					// Need to await in this case because the generation request needs to go after the backend has enabled the module.
-					await updateModuleState( 'critical_css', true );
-
-					navigate( '/' );
-				} catch ( e ) {
-					dismissedSnackbar.set( false );
-				} finally {
-					initiatingFreePlan = false;
-				}
-			} )(),
-		] );
-	};
-
-	const choosePaidPlan = async () => {
-		initiatingPaidPlan = true;
-
-		await Promise.all( [
-			await recordBoostEvent( 'premium_cta_from_getting_started_page_in_plugin', {} ),
-			await ( async () => {
-				try {
-					await ensureConnection();
-
-					// Check if the site is already on a premium plan and go directly to settings if so.
-					if ( get( config ).isPremium ) {
-						// Allow opening the boost settings page.
-						markGetStartedComplete();
-
-						navigate( '/', { replace: true } );
-						return;
-					}
-
-					window.location.href = getUpgradeURL();
-				} catch ( e ) {
-					dismissedSnackbar.set( false );
-				} finally {
-					initiatingPaidPlan = false;
-				}
-			} )(),
-		] );
-	};
-
-	onMount( () => {
-		// If we don't have pricing data, we should skip the page and go directly to settings.
-		if ( typeof pricing.yearly === 'undefined' ) {
-			// Allow opening the boost settings page.
-			markGetStartedComplete();
-
+			// Otherwise go to dashboard home.
 			navigate( '/', { replace: true } );
+		} catch ( e ) {
+			// Display the error in a snackbar message
+			snackbarMessage = e.message || 'Unknown error occurred during the plan selection.';
+		} finally {
+			selectedPlan = false;
 		}
-	} );
+	}
 </script>
 
-<div id="jb-settings" class="jb-settings jb-settings--main">
-	<div class="jb-container jb-get-started-header">
-		<Header />
-
+<div id="jb-dashboard" class="jb-dashboard jb-dashboard--main">
+	<Header>
 		<ActivateLicense />
-	</div>
+	</Header>
 
-	{#if pricing.yearly}
-		<div class="jb-section jb-section--alt">
-			<div class="jb-container">
-				<div class="jb-pricing-table">
+	<div class="jb-section jb-section--alt">
+		<div class="jb-container">
+			<div class="jb-pricing-table">
+				<ReactComponent
+					this={BoostPricingTable}
+					{pricing}
+					onPremiumCTA={() => ( selectedPlan = 'premium' )}
+					onFreeCTA={() => ( selectedPlan = 'free' )}
+					chosenFreePlan={selectedPlan === 'free'}
+					chosenPaidPlan={selectedPlan === 'premium'}
+				/>
+				{#if snackbarMessage}
 					<ReactComponent
-						this={BoostPricingTable}
-						{pricing}
-						onPremiumCTA={choosePaidPlan}
-						onFreeCTA={chooseFreePlan}
-						chosenFreePlan={initiatingFreePlan}
-						chosenPaidPlan={initiatingPaidPlan}
+						this={Snackbar}
+						children={snackbarMessage}
+						onDismiss={() => ( snackbarMessage = '' )}
 					/>
-					{#if $snackbarMessage}
-						<ReactComponent
-							this={Snackbar}
-							children={$snackbarMessage}
-							onDismiss={() => dismissedSnackbar.set( true )}
-						/>
-					{/if}
-				</div>
+				{/if}
 			</div>
 		</div>
-	{/if}
+	</div>
+
+	<Footer />
 </div>
+
+<style lang="scss">
+	.jb-pricing-table {
+		isolation: isolate;
+	}
+</style>

@@ -24,11 +24,10 @@ final class Data_Sync_Option implements Entry_Can_Get, Entry_Can_Set, Entry_Can_
 	}
 
 	public function set( $value ) {
-		update_option( $this->option_key, $value );
+		update_option( $this->option_key, $value, false );
 	}
 
 	public function delete() {
 		delete_option( $this->option_key );
 	}
-
 }

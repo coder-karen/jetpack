@@ -3,42 +3,51 @@
 	import { onMount } from 'svelte';
 	import { Button } from '@wordpress/components';
 	import { __ } from '@wordpress/i18n';
-	import BackButton from '../../elements/BackButton.svelte';
 	import ReactComponent from '../../elements/ReactComponent.svelte';
 	import TemplatedString from '../../elements/TemplatedString.svelte';
-	import { regenerateCriticalCss } from '../../stores/critical-css-state';
-	import { updateModuleState } from '../../stores/modules';
+	import { requestImageAnalysis } from '../../modules/image-size-analysis/store/isa-summary';
 	import Logo from '../../svg/jetpack-green.svg';
+	import enableCloudCss from '../../utils/enable-cloud-css';
 	import externalLinkTemplateVar from '../../utils/external-link-template-var';
 
 	const wpcomPricingUrl = getRedirectUrl( 'wpcom-pricing' );
 
 	// svelte-ignore unused-export-let - Ignored values supplied by svelte-navigator.
 	export let location, navigate;
+	export let isImageGuideActive: boolean;
 
 	onMount( async () => {
-		// Enable cloud-css on a successful upgrade.
-		await updateModuleState( 'cloud_css', true );
-		await regenerateCriticalCss();
+		enableCloudCss();
+
+		// If image guide is enabled, request a new ISA report.
+		if ( isImageGuideActive ) {
+			// Check if images can be resized.
+			if ( false !== Jetpack_Boost.site.canResizeImages ) {
+				await requestImageAnalysis();
+			}
+		}
 	} );
 </script>
 
-<div id="jb-settings" class="jb-settings">
+<div id="jb-dashboard" class="jb-dashboard">
 	<div class="jb-container jb-container--fixed mt-2">
-		<BackButton />
 		<div class="jb-card">
 			<div class="jb-card__content">
 				<Logo class="my-2" />
 				<h1 class="my-2">{__( 'Your Jetpack Boost has been upgraded!', 'jetpack-boost' )}</h1>
 				<p class="jb-card__summary my-2">
 					{__(
-						'When you update your site, it will now be optimized automatically with automated critical CSS',
+						'Your site now auto-generates Critical CSS and can analyze image sizes for efficient display.',
 						'jetpack-boost'
 					)}
 				</p>
 				<ul class="jb-checklist my-2">
 					<li>{__( 'Automatic critical CSS regeneration', 'jetpack-boost' )}</li>
 					<li>{__( 'Performance scores are recalculated after each change', 'jetpack-boost' )}</li>
+					<li>{__( 'Automatically scan your site for image size issues', 'jetpack-boost' )}</li>
+					<li>
+						{__( 'Historical performance scores with Core Web Vitals data', 'jetpack-boost' )}
+					</li>
 
 					<li>
 						<!-- svelte-ignore missing-declaration Jetpack_Boost -->

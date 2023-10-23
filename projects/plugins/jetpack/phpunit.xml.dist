@@ -12,12 +12,6 @@
 		<testsuite name="media">
 			<directory prefix="test" suffix=".php">tests/php/media</directory>
 		</testsuite>
-		<testsuite name="photon">
-			<file>tests/php/test_class.jetpack_photon.php</file>
-			<file>tests/php/test_functions.photon.php</file>
-			<directory prefix="test_" suffix=".php">tests/php/modules/photon</directory>
-			<file>tests/php/test_class.functions.opengraph.php</file>
-		</testsuite>
 		<testsuite name="json-api">
 			<directory prefix="test" suffix=".php">tests/php/json-api</directory>
 		</testsuite>
@@ -29,6 +23,9 @@
 		</testsuite>
 		<testsuite name="likes">
 			<directory prefix="test_" suffix=".php">tests/php/modules/likes</directory>
+		</testsuite>
+		<testsuite name="markdown">
+			<directory prefix="test_" suffix=".php">tests/php/modules/markdown</directory>
 		</testsuite>
 		<testsuite name="publicize">
 			<directory prefix="test_" suffix=".php">tests/php/modules/publicize</directory>
@@ -125,6 +122,9 @@
 		</testsuite>
 		<testsuite name="compatfunctions">
 			<file>tests/php/test_functions.compat.php</file>
+		</testsuite>
+		<testsuite name="autoloaded">
+			<directory prefix="test" suffix=".php">tests/php/src</directory>
 		</testsuite>
 	</testsuites>
 	<groups>

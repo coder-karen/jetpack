@@ -342,7 +342,7 @@ function youtube_id( $url ) {
 		$layout = $is_amp ? 'layout="responsive" ' : '';
 
 		$html = sprintf(
-			'<iframe class="youtube-player" width="%s" height="%s" %ssrc="%s" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe>',
+			'<iframe class="youtube-player" width="%s" height="%s" %ssrc="%s" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-popups-to-escape-sandbox"></iframe>',
 			esc_attr( $w ),
 			esc_attr( $h ),
 			$layout,
@@ -452,6 +452,7 @@ add_shortcode( 'youtube', 'youtube_shortcode' );
  * @return array The width and height of the shortcode.
  */
 function jetpack_shortcode_youtube_dimensions( $query_args ) {
+	$h = null;
 	global $content_width;
 
 	$input_w = ( isset( $query_args['w'] ) && (int) $query_args['w'] ) ? (int) $query_args['w'] : 0;

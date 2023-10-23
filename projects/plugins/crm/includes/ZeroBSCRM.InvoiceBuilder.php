@@ -17,37 +17,6 @@
   / Breaking Checks
    ====================================================== */
 
-
-// Centralised date processing for invoices,
-// DAL2 will thankfully do away with this? (timezone sensitive?)
-function zeroBSCRM_invoiceBuilder_dateMetaToDate($zbs_inv_meta=array(),$plusDays=0,$returnAsUTS=false){
-
-    $inv_date = '';
-    if (isset($zbs_inv_meta['date']) && $zbs_inv_meta['date'] != 'Invalid Date'){
-        $dt = zeroBSCRM_locale_dateToUTS($zbs_inv_meta['date']);
-        // this only happens when people have $date in one format, but their settings match a diff setting                                
-    // NOTE there is NO TIME used here, so we use post_date_gmt + 'true' for isGMT in  zeroBSCRM_date_i18n
-        if ($dt !== false) {
-            if ($plusDays !== 0) $dt += ($plusDays*86400);  
-
-            // return as uts?
-            if ($returnAsUTS) return $dt;
-            // or date?
-            $inv_date = zeroBSCRM_date_i18n(-1,$dt,false,true);
-        }
-    }else{
-
-        $dt = time();
-        if ($plusDays !== 0) $dt += ($plusDays*86400);    
-        // return as uts?
-        if ($returnAsUTS) return $dt;
-        // or date?    
-        $inv_date = zeroBSCRM_date_i18n(-1,$dt);
-    }
-
-    return $inv_date;
-}
-
 // takes inv meta and works out if due
 // now v3.0 friendly!
 function zeroBSCRM_invoiceBuilder_isInvoiceDue($zbsInvoice=array()){
@@ -260,91 +229,83 @@ function zeroBSCRM_invoice_generatePortalInvoiceHTML_v3($invoiceID=-1,$return=tr
 
 function zbs_invoice_generate_pdf(){
 
-    global $zbs;
+	// download flag
+	if ( isset( $_POST['zbs_invoicing_download_pdf'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-    #} download flag
-    if ( isset($_POST['zbs_invoicing_download_pdf'])  ) {
+		// THIS REALLLY needs nonces! For now (1.1.19) added this for you...
+		if ( ! zeroBSCRM_permsInvoices() ) {
+			exit();
+		}
 
-        #} THIS REALLLY needs nonces! For now (1.1.19) added this for you...
-        if (!zeroBSCRM_permsInvoices()) exit();
+		// Check ID
+		$invoice_id = -1;
+		if ( ! empty( $_POST['zbs_invoice_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$invoice_id = (int) $_POST['zbs_invoice_id']; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+		if ( $invoice_id <= 0 ) {
+			exit();
+		}
 
-        #} Check ID
-        $invoiceID = -1;
-        if (isset($_POST['zbs_invoice_id']) && !empty($_POST['zbs_invoice_id'])) $invoiceID = (int)sanitize_text_field($_POST['zbs_invoice_id']);
-        if ($invoiceID <= 0) exit();
+		// generate the PDF
+		$pdf_path = jpcrm_invoice_generate_pdf( $invoice_id );
 
-        // generate the PDF
-        $pdfFileLocation = zeroBSCRM_generateInvoicePDFFile($invoiceID);
+		if ( $pdf_path !== false ) {
 
-        if ($pdfFileLocation !== false){
+			$pdf_filename = basename( $pdf_path );
 
-            $invoice = $zbs->DAL->invoices->getInvoice( $invoiceID );
-            $ref = $invoice[ 'id_override' ];
+			// print the pdf file to the screen for saving
+			header( 'Content-type: application/pdf' );
+			header( 'Content-Disposition: attachment; filename="' . $pdf_filename . '"' );
+			header( 'Content-Transfer-Encoding: binary' );
+			header( 'Content-Length: ' . filesize( $pdf_path ) );
+			header( 'Accept-Ranges: bytes' );
+			readfile( $pdf_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 
-            if ( empty( $ref ) ) {
-                $ref = $invoiceID;
-            }
+			// delete the PDF file once it's been read (i.e. downloaded)
+			wp_delete_file( $pdf_path );
 
-            //print the pdf file to the screen for saving
-            header('Content-type: application/pdf');
-            header('Content-Disposition: attachment; filename="invoice-' . $ref . '.pdf"' );
-            header('Content-Transfer-Encoding: binary');
-            header('Content-Length: ' . filesize($pdfFileLocation));
-            header('Accept-Ranges: bytes');
-            readfile($pdfFileLocation);
+		}
 
-            //delete the PDF file once it's been read (i.e. downloaded)
-            unlink($pdfFileLocation); 
-
-        }
-
-        exit();
-    }
-
+		exit();
+	}
 }
-#} This fires post ZBS init
-add_action('zerobscrm_post_init','zbs_invoice_generate_pdf');
+// This fires post ZBS init
+add_action( 'zerobscrm_post_init', 'zbs_invoice_generate_pdf' );
 
-#} V3.0 can generate invoice pdf files without sending them
-#} ... used for attaching pdf's to emails etc.
-function zeroBSCRM_generateInvoicePDFFile( $invoice_id = -1 ) {
+/**
+ * Generate PDF file for an invoice
+ *
+ * @param int $invoice_id Invoice ID.
+ * @return str path to PDF file
+ */
+function jpcrm_invoice_generate_pdf( $invoice_id = -1 ) {
 
-    global $zbs;
+	// brutal.
+	if ( ! zeroBSCRM_permsInvoices() ) {
+		return false;
+	}
 
-    // brutal.
-    if ( !zeroBSCRM_permsInvoices() ){
-        return false;
-    }
+	// If user has no perms, or id not present, die
+	if ( $invoice_id <= 0 ) {
+		return false;
+	}
 
-    // If user has no perms, or id not present, die
-    if ( $invoice_id <= 0 ){
-        
-        return false;
-        
-    }
+	// Generate html
+	$html = zeroBSCRM_invoice_generateInvoiceHTML( $invoice_id );
 
-    // Generate html
-    $html = zeroBSCRM_invoice_generateInvoiceHTML( $invoice_id );
+	global $zbs;
+	$invoice = $zbs->DAL->invoices->getInvoice( $invoice_id ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
-    // build PDF
-    $dompdf = $zbs->pdf_engine();
-    $dompdf->loadHtml( $html, 'UTF-8' );
-    $dompdf->render();
+	// if invoice has reference number, use instead of ID
+	if ( ! empty( $invoice['id_override'] ) ) {
+		$invoice_id = $invoice['id_override'];
+	}
 
-    $upload_dir = wp_upload_dir();        
-    $zbsInvoiceDir = $upload_dir['basedir'].'/invoices/';
+	// normalise translated text to alphanumeric, resulting in a filename like `invoice-321.pdf`
+	$pdf_filename = sanitize_title( __( 'Invoice', 'zero-bs-crm' ) . '-' . $invoice_id ) . '.pdf';
 
-    if ( ! file_exists( $zbsInvoiceDir ) ) {
-        wp_mkdir_p( $zbsInvoiceDir );
-    }
-    
-    $file_to_save = $zbsInvoiceDir . $invoice_id . '.pdf';
-
-    // save the pdf file on the server
-    file_put_contents( $file_to_save, $dompdf->output() ); 
-    
-    return $file_to_save;
-
+	// return PDF filename if successful, false if not
+	return jpcrm_generate_pdf( $html, $pdf_filename );
 }
 
 // LEGACY, should now be using zeroBSCRM_invoice_generateInvoiceHTML
@@ -648,7 +609,7 @@ function zeroBSCRM_invoicing_generateStatementHTML_v3( $contact_id = -1, $return
 
 				// 2 ways here - if marked 'paid', then assume balance
 				// ... if not, then trans allocation check
-				if ( isset( $invoice['status'] ) && $invoice['status'] === __( 'Paid', 'zero-bs-crm' ) ) {
+				if ( isset( $invoice['status'] ) && $invoice['status'] === 'Paid' ) {
 
 					// assume fully paid
 					$balance  = 0.00;
@@ -810,11 +771,12 @@ function zeroBSCRM_invoicing_generateInvoiceHTML( $invoice_id = -1, $template = 
 	// Custom fields
 	$invoice_custom_fields_html = jpcrm_invoicing_generate_invoice_custom_fields_lines( $invoice, $template );
 
-	// status
+	// default status and status label
 	if ( ! isset( $invoice['status'] ) ) {
-		$zbs_stat = __( 'Draft', 'zero-bs-crm' );
-	} else {
-		$zbs_stat = $invoice['status'];
+		$invoice['status'] = 'Draft';
+	}
+	if ( ! isset( $invoice['status_label'] ) ) {
+		$invoice['status_label'] = __( 'Draft', 'zero-bs-crm' );
 	}
 
 	// status html:
@@ -822,7 +784,7 @@ function zeroBSCRM_invoicing_generateInvoiceHTML( $invoice_id = -1, $template = 
 
 		// portal version: Includes status label and amount (shown at top of portal invoice)
 		$top_status  = '<div class="zbs-portal-label">';
-		$top_status .= esc_html( $zbs_stat );
+		$top_status .= esc_html( $invoice['status_label'] );
 		$top_status .= '</div>';
 		// WH added quickly to get around fact this is sometimes empty, please tidy when you address currency formatting :)
 		$inv_g_total = '';
@@ -830,35 +792,28 @@ function zeroBSCRM_invoicing_generateInvoiceHTML( $invoice_id = -1, $template = 
 			$inv_g_total = zeroBSCRM_formatCurrency( $invoice['total'] );
 		}
 		$top_status .= '<h1 class="zbs-portal-value">' . esc_html( $inv_g_total ) . '</h1>';
-		if ( $zbs_stat === __( 'Paid', 'zero-bs-crm' ) ) {
-			$top_status .= '<div class="zbs-invoice-paid"><i class="fa fa-check"></i>' . esc_html__( 'Paid', 'zero-bs-crm' ) . '</div>';
+		if ( $invoice['status'] === 'Paid' ) {
+			$top_status .= '<div class="zbs-invoice-paid"><i class="fa fa-check"></i>' . esc_html( $invoice['status_label'] ) . '</div>';
 		}
 	} elseif ( $template === 'pdf' ) {
 
 		// pdf status
-		if ( $zbs_stat === __( 'Paid', 'zero-bs-crm' ) ) {
+		if ( $invoice['status'] === 'Paid' ) {
 
-			$top_status = '<div class="jpcrm-invoice-status jpcrm-invoice-paid">' . esc_html__( 'Paid', 'zero-bs-crm' ) . '</div>';
+			$top_status = '<div class="jpcrm-invoice-status jpcrm-invoice-paid">' . esc_html( $invoice['status_label'] ) . '</div>';
 
 		} else {
 
-			$top_status = '<div class="jpcrm-invoice-status">' . esc_html( $zbs_stat ) . '</div>';
+			$top_status = '<div class="jpcrm-invoice-status">' . esc_html( $invoice['status_label'] ) . '</div>';
 
 		}
+	} elseif ( $template === 'notification' ) {
+		// sent to contact via email
+		$top_status = esc_html( $invoice['status_label'] );
 	}
 
 	// inv lines
 	$invlines = $invoice['lineitems'];
-
-	// SET all new invoices to unpaid
-	if (
-		// Not set, but inv exists
-		( isset( $invoice ) && is_array( $invoice ) && ( ! isset( $invoice['status'] ) || empty( $invoice['status'] ) ) ) ||
-		// No inv exists
-		( ! isset( $invoice ) || ! is_array( $invoice ) )
-	) {
-		$invoice['status'] = __( 'Draft', 'zero-bs-crm' ); //moved to draft. Unpaid will be set once the invoice has been sent.
-	}
 
 	// switch for Company if set...
 	if ( $zbs_company_id > 0 ) {
@@ -1164,11 +1119,11 @@ function zeroBSCRM_invoicing_generateInvoiceHTML( $invoice_id = -1, $template = 
 	$partials_table .= '</table>';
 
 	// generate a templated paybutton (depends on template :))
-	$potential_pay_button = zeroBSCRM_invoicing_generateInvPart_payButton( $invoice_id, $zbs_stat, $template );
+	$potential_pay_button = zeroBSCRM_invoicing_generateInvPart_payButton( $invoice_id, $invoice['status'], $template );
 
 	// == Payment terms, thanks etc. will only replace when present in template, so safe to generically check
 	$pay_thanks = '';
-	if ( $zbs_stat === __( 'Paid', 'zero-bs-crm' ) ) {
+	if ( $invoice['status'] === 'Paid' ) {
 		$pay_thanks  = '<div class="deets"><h3>' . esc_html__( 'Thank You', 'zero-bs-crm' ) . '</h3>';
 		$pay_thanks .= '<div>' . nl2br( esc_html( zeroBSCRM_getSetting( 'paythanks' ) ) ) . '</div>';
 		$pay_thanks .= '</div>';
@@ -1645,59 +1600,49 @@ function zeroBSCRM_invoicing_generateInvPart_lineitems( $invlines = array(), $te
 	return $line_item_html;
 }
 // Used to generate specific part of invoice pdf: (pay button)
-function zeroBSCRM_invoicing_generateInvPart_payButton($invoiceID=-1,$zbs_stat='',$template='pdf'){
+function zeroBSCRM_invoicing_generateInvPart_payButton( $invoice_id = -1, $status = '', $template = 'pdf' ) { // phpcs:ignore Squiz.Commenting.FunctionComment.WrongStyle
 
-    $potentialPayButton = '';
+	$potential_pay_button = '';
 
-        switch ($template){
+	switch ( $template ) {
 
-            case 'pdf':
-    
-               $potentialPayButton = '';
+		case 'pdf':
+			$potential_pay_button = '';
+			break;
 
-            break;
+		case 'portal':
+			if ( $status !== 'Paid' ) {
 
-            case 'portal':
-                
-                if ($zbs_stat != __('Paid','zero-bs-crm')) {
+				// need to add somethere here which stops the below if WooCommerce meta set
+				// so the action below will fire in WooSync, and remove the three filters below
+				// https://codex.wordpress.org/Function_Reference/remove_filter
+				// and then filter itself in. EDIT the remove filter does not seem to remove them below
+				// think they already need to be applied (i.e. this below). The below works but should
+				// think how best to do this for further extension later?
 
-                    // need to add somethere here which stops the below if WooCommerce meta set
-                    // so the action below will fire in WooSync, and remove the three filters below
-                    // https://codex.wordpress.org/Function_Reference/remove_filter
-                    // and then filter itself in. EDIT the remove filter does not seem to remove them below
-                    // think they already need to be applied (i.e. this below). The below works but should
-                    // think how best to do this for further extension later?
+				// WH: This'll be the ID if woo doesn't return a button (e.g. it's a woo inv so don't show pay buttons)
+				$potential_woo_pay_button_or_inv_id = apply_filters( 'zbs_woo_pay_invoice', $invoice_id );
 
+				if ( $potential_woo_pay_button_or_inv_id == $invoice_id ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
+					$potential_pay_button = apply_filters( 'invpro_pay_online', $invoice_id );
+				} else {
+					$potential_pay_button = $potential_woo_pay_button_or_inv_id;
+				}
 
-                    // WH: This'll be the ID if woo doesn't return a button (e.g. it's a woo inv so don't show pay buttons)
-                    $potentialWooPayButtonOrInvID = apply_filters('zbs_woo_pay_invoice', $invoiceID);
-                    
-                    if ($potentialWooPayButtonOrInvID == $invoiceID){
+				if ( $potential_pay_button == $invoice_id ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
+					$potential_pay_button = '';
+				}
+			}
 
-                        $potentialPayButton = apply_filters('invpro_pay_online', $invoiceID);
+			break;
 
-                    } else {
+		case 'notification':
+			$potential_pay_button = '';
+			break;
 
-                        $potentialPayButton = $potentialWooPayButtonOrInvID;
+	}
 
-                    }
-
-                    if ($potentialPayButton == $invoiceID) $potentialPayButton = '';
-
-
-                }
-
-            break;
-
-            case 'notification':
-    
-               $potentialPayButton = '';
-
-            break;
-
-        }
-
-    return $potentialPayButton;
+	return $potential_pay_button;
 }
 // Used to generate specific part of invoice pdf: (table headers)
 // phpcs:ignore Squiz.Commenting.FunctionComment.Missing

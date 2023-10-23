@@ -41,6 +41,19 @@ module.exports = {
 		requireConfigFile: false,
 	},
 	settings: {
+		'import/resolver': {
+			// Check package.json exports. See https://github.com/import-js/eslint-plugin-import/issues/1810.
+			[ require.resolve( 'eslint-import-resolver-exports' ) ]: {
+				extensions: [ '.js', '.jsx', '.ts', '.tsx' ],
+				conditions: process.env.npm_config_jetpack_webpack_config_resolve_conditions
+					? process.env.npm_config_jetpack_webpack_config_resolve_conditions.split( ',' )
+					: [],
+			},
+			// Check normal node file resolution.
+			node: {
+				extensions: [ '.js', '.jsx', '.ts', '.tsx' ],
+			},
+		},
 		jsdoc: {
 			preferredTypes: {
 				// Override wpcalypso, we'd rather follow jsdoc and typescript in this.
@@ -148,6 +161,9 @@ module.exports = {
 		'wpcalypso/i18n-no-collapsible-whitespace': 0,
 		'wpcalypso/i18n-no-variables': 0,
 
+		// Rules that only make sense for Calypso.
+		'wpcalypso/i18n-unlocalized-url': 0,
+
 		// Dummy domain, projects should override this in their own .eslintrc.js.
 		'@wordpress/i18n-text-domain': [
 			'error',
@@ -171,7 +187,7 @@ module.exports = {
 			},
 		],
 		'jsdoc/implements-on-classes': 1, // Recommended
-		'jsdoc/newline-after-description': 1, // Recommended
+		'jsdoc/no-defaults': 0,
 		'jsdoc/no-undefined-types': [
 			1,
 			{
@@ -191,6 +207,15 @@ module.exports = {
 		'jsdoc/require-returns-check': 1, // Recommended
 		'jsdoc/require-returns-description': 1, // Recommended
 		'jsdoc/require-returns-type': 1, // Recommended
+		'jsdoc/tag-lines': [
+			'warn',
+			'any',
+			{
+				startLines: null,
+				endLines: 0,
+				applyToEndTag: false,
+			},
+		],
 		'jsdoc/valid-types': 1, // Recommended
 		'jsdoc/check-values': 1,
 

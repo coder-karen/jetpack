@@ -51,6 +51,8 @@ export class ConnectButton extends React.Component {
 		connectInPlace: PropTypes.bool,
 		customConnect: PropTypes.func,
 		autoOpenInDisconnectRoute: PropTypes.bool,
+		rna: PropTypes.bool,
+		compact: PropTypes.bool,
 	};
 
 	static defaultProps = {
@@ -59,6 +61,8 @@ export class ConnectButton extends React.Component {
 		asLink: false,
 		connectInPlace: true,
 		autoOpenInDisconnectRoute: false,
+		rna: false,
+		compact: false,
 	};
 
 	constructor( props ) {
@@ -84,7 +88,7 @@ export class ConnectButton extends React.Component {
 		this.setState( { showModal: ! this.state.showModal } );
 	};
 
-	loadIframe = e => {
+	loadConnectionScreen = e => {
 		e.preventDefault();
 		// If the iframe is already loaded or we don't have a connectUrl yet, return.
 		if ( this.props.isAuthorizing || this.props.fetchingConnectUrl ) {
@@ -98,7 +102,7 @@ export class ConnectButton extends React.Component {
 			this.props.customConnect();
 		} else {
 			// Dispatch user in place authorization.
-			this.props.doConnectUser();
+			this.props.doConnectUser( null, this.props.from );
 		}
 	};
 
@@ -137,31 +141,17 @@ export class ConnectButton extends React.Component {
 				className: 'is-primary jp-jetpack-connect__button',
 				href: connectUrl,
 				disabled: this.props.fetchingConnectUrl || this.props.isAuthorizing,
+				onClick: this.loadConnectionScreen,
 			},
 			connectLegend =
 				this.props.connectLegend || __( 'Connect your WordPress.com account', 'jetpack' );
 
-		// Secondary users in-place connection flow
-
-		// Due to the limitation in how 3rd party cookies are handled in Safari,
-		// we're falling back to the original flow on Safari desktop and mobile,
-		// thus ignore the 'connectInPlace' property value.
-
-		// We also check the `doNotUseConnectionIframe` initial global state property.
-		// This will override the button's `connectInPlace` property.
-
-		if (
-			this.props.connectInPlace &&
-			! this.props.isSafari &&
-			! this.props.doNotUseConnectionIframe
-		) {
-			buttonProps.onClick = this.loadIframe;
-		}
-
 		return this.props.asLink ? (
 			<a { ...buttonProps }>{ connectLegend }</a>
 		) : (
-			<Button { ...buttonProps }>{ connectLegend }</Button>
+			<Button rna={ this.props.rna } compact={ this.props.compact } { ...buttonProps }>
+				{ connectLegend }
+			</Button>
 		);
 	};
 
@@ -280,8 +270,8 @@ export default connect(
 			unlinkUser: () => {
 				return dispatch( unlinkUser() );
 			},
-			doConnectUser: () => {
-				return dispatch( _connectUser() );
+			doConnectUser: ( featureLabel, from ) => {
+				return dispatch( _connectUser( featureLabel, from ) );
 			},
 		};
 	}

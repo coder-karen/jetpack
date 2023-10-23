@@ -10,8 +10,7 @@ function removeTrailingDots( string ) {
  *
  * @link https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts
  *
- * List has to be in with `Jetpack_Memberships::SUPPORTED_CURRENCIES` in modules/memberships/class-jetpack-memberships.php and
- * `Memberships_Product::SUPPORTED_CURRENCIES` in the WP.com memberships library.
+ * List has to be in with `Jetpack_Memberships::SUPPORTED_CURRENCIES` in modules/memberships/class-jetpack-memberships.php.
  */
 export const SUPPORTED_CURRENCIES = {
 	USD: 0.5,
@@ -61,6 +60,21 @@ export function minimumTransactionAmountForCurrency( currency_code ) {
 }
 
 /**
+ * Returns the default amounts for the given currency.
+ *
+ * @param {string} currency_code - three character currency code to get default amounts for
+ * @returns {number[]} Default amounts for the given currency_code
+ */
+export function getDefaultDonationAmountsForCurrency( currency_code ) {
+	const minAmount = minimumTransactionAmountForCurrency( currency_code );
+	return [
+		minAmount * 10, // 1st tier (USD 5)
+		minAmount * 30, // 2nd tier (USD 15)
+		minAmount * 200, // 3rd tier (USD 100)
+	];
+}
+
+/**
  * True if the price is a number and at least the minimum allowed amount.
  *
  * @param {string} currency - Currency for the given price.
@@ -80,10 +94,17 @@ export function parseAmount( amount, currency ) {
 		return amount;
 	}
 
+	let ungrouped_amount = amount;
+	if ( CURRENCIES[ currency ].grouping ) {
+		// Remove any thousand grouping separator.
+		ungrouped_amount = amount.replace(
+			new RegExp( '\\' + CURRENCIES[ currency ].grouping, 'g' ),
+			''
+		);
+	}
+
 	amount = parseFloat(
-		amount
-			// Remove any thousand grouping separator.
-			.replace( new RegExp( '\\' + CURRENCIES[ currency ].grouping, 'g' ), '' )
+		ungrouped_amount
 			// Replace the localized decimal separator with a dot (the standard decimal separator in float numbers).
 			.replace( new RegExp( '\\' + CURRENCIES[ currency ].decimal, 'g' ), '.' )
 	);

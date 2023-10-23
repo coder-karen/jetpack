@@ -75,7 +75,8 @@ const ProductDetailCard = ( {
 	preferProductName,
 	supportingInfo,
 } ) => {
-	const { fileSystemWriteAccess, siteSuffix, myJetpackUrl } = window?.myJetpackInitialState ?? {};
+	const { fileSystemWriteAccess, siteSuffix, adminUrl, myJetpackUrl } =
+		window?.myJetpackInitialState ?? {};
 
 	const { detail, isFetching } = useProduct( slug );
 	const {
@@ -90,6 +91,7 @@ const ProductDetailCard = ( {
 		hasRequiredPlan,
 		status,
 		pluginSlug,
+		postCheckoutUrl,
 	} = detail;
 
 	const cantInstallPlugin = status === 'plugin_absent' && 'no' === fileSystemWriteAccess;
@@ -103,6 +105,7 @@ const ProductDetailCard = ( {
 		wpcomProductSlug,
 		wpcomFreeProductSlug,
 		introductoryOffer,
+		productTerm,
 	} = pricingForUi;
 
 	const { recordEvent } = useAnalytics();
@@ -114,11 +117,15 @@ const ProductDetailCard = ( {
 	 */
 	const needsPurchase = ! isFree && ! hasRequiredPlan;
 
+	const checkoutRedirectUrl = postCheckoutUrl ? postCheckoutUrl : myJetpackUrl;
+
 	const { run: mainCheckoutRedirect, hasCheckoutStarted: hasMainCheckoutStarted } =
 		useProductCheckoutWorkflow( {
 			productSlug: wpcomProductSlug,
-			redirectUrl: myJetpackUrl,
+			redirectUrl: checkoutRedirectUrl,
 			siteSuffix,
+			adminUrl,
+			connectAfterCheckout: true,
 			from: 'my-jetpack',
 		} );
 
@@ -152,23 +159,26 @@ const ProductDetailCard = ( {
 				} )
 		: null;
 
-	const priceDescription =
-		introductoryOffer?.intervalUnit === 'month' && introductoryOffer?.intervalCount === 1
-			? sprintf(
-					// translators: %s is the monthly price for a product
-					__( 'trial for the first month, then $%s /month, billed yearly', 'jetpack-my-jetpack' ),
-					price
-			  )
-			: __(
-					'/month, paid yearly',
-					'jetpack-my-jetpack',
-					/* dummy arg to avoid bad minification */ 0
-			  );
-
+	let priceDescription;
+	if ( introductoryOffer?.intervalUnit === 'month' && introductoryOffer?.intervalCount === 1 ) {
+		priceDescription = sprintf(
+			// translators: %s is the monthly price for a product
+			__( 'trial for the first month, then $%s /month, billed yearly', 'jetpack-my-jetpack' ),
+			price
+		);
+	} else if ( productTerm === 'year' ) {
+		priceDescription = __( '/month, paid yearly', 'jetpack-my-jetpack' );
+	} else {
+		priceDescription = __(
+			'/month',
+			'jetpack-my-jetpack',
+			/* dummy arg to avoid bad minification */ 0
+		);
+	}
 	const clickHandler = useCallback( () => {
 		trackButtonClick();
-		onClick?.( mainCheckoutRedirect );
-	}, [ onClick, trackButtonClick, mainCheckoutRedirect ] );
+		onClick?.( mainCheckoutRedirect, detail );
+	}, [ onClick, trackButtonClick, mainCheckoutRedirect, detail ] );
 
 	const trialClickHandler = useCallback( () => {
 		trackButtonClick( wpcomFreeProductSlug );

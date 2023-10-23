@@ -1,16 +1,15 @@
+import { getBlockIconComponent } from '@automattic/jetpack-shared-extension-utils';
 import apiFetch from '@wordpress/api-fetch';
 import { Placeholder } from '@wordpress/components';
-import * as wpdate from '@wordpress/date';
+import { getSettings } from '@wordpress/date';
 import { Component } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import classNames from 'classnames';
+import metadata from './block.json';
 import DayEdit from './components/day-edit';
 import DayPreview from './components/day-preview';
-import { icon } from '.';
 
-// @wordpress/date now provides getSettings in preference to __experimentalGetSettings,
-// but we still have to support WP 6.0 that doesn't have that yet.
-const getSettings = wpdate.getSettings || wpdate.__experimentalGetSettings;
+const icon = getBlockIconComponent( metadata );
 
 export const defaultLocalization = {
 	days: {

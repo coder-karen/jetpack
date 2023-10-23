@@ -1,3 +1,6 @@
+/*
+ * External dependencies
+ */
 import {
 	AdminSection,
 	AdminSectionHero,
@@ -12,13 +15,23 @@ import { useConnectionErrorNotice, ConnectionError } from '@automattic/jetpack-c
 import { Icon, Notice, Path, SVG } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { info } from '@wordpress/icons';
-import React, { useEffect } from 'react';
+import classnames from 'classnames';
+import React, { useEffect, useState } from 'react';
+/*
+ * Internal dependencies
+ */
 import useAnalytics from '../../hooks/use-analytics';
+import useChatAuthentication from '../../hooks/use-chat-authentication';
+import useChatAvailability from '../../hooks/use-chat-availability';
 import useConnectionWatcher from '../../hooks/use-connection-watcher';
 import useGlobalNotice from '../../hooks/use-notice';
+import { useProduct } from '../../hooks/use-product';
 import ConnectionsSection from '../connections-section';
+import IDCModal from '../idc-modal';
 import PlansSection from '../plans-section';
+import { PRODUCT_STATUSES } from '../product-card';
 import ProductCardsSection from '../product-cards-section';
+import StatsSection from '../stats-section';
 import styles from './styles.module.scss';
 
 const GlobalNotice = ( { message, options, clean } ) => {
@@ -74,17 +87,37 @@ const GlobalNotice = ( { message, options, clean } ) => {
  */
 export default function MyJetpackScreen() {
 	useConnectionWatcher();
+	const isStatsModuleActive = window?.myJetpackInitialState?.isStatsModuleActive === '1';
 	const { message, options, clean } = useGlobalNotice();
 	const { hasConnectionError } = useConnectionErrorNotice();
+	const { isAvailable, isFetchingChatAvailability } = useChatAvailability();
+	const { detail: statsDetails } = useProduct( 'stats' );
+	const { jwt, isFetchingChatAuthentication } = useChatAuthentication();
+	const shouldShowZendeskChatWidget =
+		! isFetchingChatAuthentication && ! isFetchingChatAvailability && isAvailable && jwt;
 
 	const { recordEvent } = useAnalytics();
+	const [ reloading, setReloading ] = useState( false );
 
 	useEffect( () => {
 		recordEvent( 'jetpack_myjetpack_page_view' );
 	}, [ recordEvent ] );
 
+	if ( window.location.hash.includes( '?reload=true' ) ) {
+		// Clears the query string and reloads the page.
+		window.history.replaceState( null, '', window.location.href.replace( '?reload=true', '' ) );
+		window.location.reload();
+
+		setReloading( true );
+	}
+
+	if ( reloading ) {
+		return null;
+	}
+
 	return (
 		<AdminPage>
+			<IDCModal />
 			<AdminSectionHero>
 				<Container horizontalSpacing={ 0 }>
 					<Col>
@@ -92,10 +125,8 @@ export default function MyJetpackScreen() {
 					</Col>
 				</Container>
 				<Container horizontalSpacing={ 5 } horizontalGap={ message ? 3 : 6 }>
-					<Col sm={ 4 } md={ 7 } lg={ 6 }>
-						<Text variant="headline-small">
-							{ __( 'Manage your Jetpack products', 'jetpack-my-jetpack' ) }
-						</Text>
+					<Col sm={ 4 } md={ 8 } lg={ 12 }>
+						<Text variant="headline-small">{ __( 'My Jetpack', 'jetpack-my-jetpack' ) }</Text>
 					</Col>
 					{ hasConnectionError && (
 						<Col>
@@ -105,6 +136,15 @@ export default function MyJetpackScreen() {
 					{ message && (
 						<Col>
 							<GlobalNotice message={ message } options={ options } clean={ clean } />
+						</Col>
+					) }
+					{ isStatsModuleActive && (
+						<Col
+							className={ classnames( {
+								[ styles.stats ]: statsDetails?.status !== PRODUCT_STATUSES.ERROR,
+							} ) }
+						>
+							<StatsSection />
 						</Col>
 					) }
 					<Col>
@@ -123,7 +163,8 @@ export default function MyJetpackScreen() {
 					</Col>
 				</Container>
 			</AdminSection>
-			<ZendeskChat />
+
+			{ shouldShowZendeskChatWidget && <ZendeskChat jwt_token={ jwt } /> }
 		</AdminPage>
 	);
 }

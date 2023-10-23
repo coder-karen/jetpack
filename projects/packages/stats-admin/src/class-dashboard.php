@@ -60,8 +60,7 @@ class Dashboard {
 			_x( 'Stats App', 'product name shown in menu', 'jetpack-stats-admin' ),
 			'manage_options',
 			'jetpack-stats-app',
-			array( $this, 'render' ),
-			100
+			array( $this, 'render' )
 		);
 
 		if ( $page_suffix ) {
@@ -126,6 +125,6 @@ class Dashboard {
 	 * Load the admin scripts.
 	 */
 	public function load_admin_scripts() {
-		( new Odyssey_Assets() )->load_admin_scripts( 'jp-stats-dashboard', 'build.min' );
+		( new Odyssey_Assets() )->load_admin_scripts( 'jp-stats-dashboard', 'build.min', array( 'config_variable_name' => 'jetpackStatsOdysseyAppConfigData' ) );
 	}
 }

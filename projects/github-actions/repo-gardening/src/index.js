@@ -9,9 +9,9 @@ const flagOss = require( './tasks/flag-oss' );
 const gatherSupportReferences = require( './tasks/gather-support-references' );
 const notifyDesign = require( './tasks/notify-design' );
 const notifyEditorial = require( './tasks/notify-editorial' );
-const notifyKitKat = require( './tasks/notify-kitkat' );
 const replyToCustomersReminder = require( './tasks/reply-to-customers-reminder' );
-const triageNewIssues = require( './tasks/triage-new-issues' );
+const triageIssues = require( './tasks/triage-issues' );
+const updateBoard = require( './tasks/update-board' );
 const wpcomCommitReminder = require( './tasks/wpcom-commit-reminder' );
 const debug = require( './utils/debug' );
 const ifNotClosed = require( './utils/if-not-closed' );
@@ -38,6 +38,11 @@ const automations = [
 		task: cleanLabels,
 	},
 	{
+		event: 'issues',
+		action: [ 'closed' ],
+		task: cleanLabels,
+	},
+	{
 		event: 'pull_request_target',
 		action: [ 'opened', 'reopened', 'synchronize', 'edited', 'labeled' ],
 		task: ifNotClosed( checkDescription ),
@@ -54,11 +59,6 @@ const automations = [
 		task: ifNotClosed( notifyEditorial ),
 	},
 	{
-		event: 'issues',
-		action: [ 'labeled' ],
-		task: notifyKitKat,
-	},
-	{
 		event: 'push',
 		task: wpcomCommitReminder,
 	},
@@ -69,8 +69,8 @@ const automations = [
 	},
 	{
 		event: 'issues',
-		action: [ 'opened', 'reopened' ],
-		task: triageNewIssues,
+		action: [ 'opened', 'reopened', 'labeled' ],
+		task: triageIssues,
 	},
 	{
 		event: 'issues',
@@ -86,6 +86,11 @@ const automations = [
 		event: 'issues',
 		action: [ 'closed' ],
 		task: replyToCustomersReminder,
+	},
+	{
+		event: 'issues',
+		action: [ 'labeled' ],
+		task: updateBoard,
 	},
 ];
 

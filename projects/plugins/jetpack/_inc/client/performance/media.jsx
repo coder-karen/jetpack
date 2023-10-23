@@ -1,7 +1,5 @@
-import ProgressBar from '@automattic/components/dist/esm/progress-bar';
-import { getRedirectUrl } from '@automattic/jetpack-components';
+import { ProgressBar, ToggleControl, getRedirectUrl } from '@automattic/jetpack-components';
 import { __, _x } from '@wordpress/i18n';
-import CompactFormToggle from 'components/form/form-toggle/compact';
 import { FormLegend, FormFieldset } from 'components/forms';
 import JetpackBanner from 'components/jetpack-banner';
 import { withModuleSettingsFormHelpers } from 'components/module-settings/with-module-settings-form-helpers';
@@ -88,7 +86,7 @@ class Media extends React.Component {
 				{ shouldDisplayStorage && (
 					<div className="media__videopress-storage">
 						<span>{ __( 'Video storage used out of 1TB:', 'jetpack' ) }</span>
-						<ProgressBar value={ videoPressStorageUsed / 10000 } />
+						<ProgressBar progress={ videoPressStorageUsed / 1000000 } />
 					</div>
 				) }
 				{ hasConnectedOwner && (
@@ -105,16 +103,14 @@ class Media extends React.Component {
 							</span>
 						</ModuleToggle>
 						<FormFieldset>
-							<CompactFormToggle
+							<ToggleControl
 								id="videopress-site-privacy"
 								disabled={ ! this.props.getOptionValue( 'videopress' ) }
+								toggling={ this.props.isSavingAnyOption( 'videopress_private_enabled_for_site' ) }
 								checked={ this.props.getOptionValue( 'videopress_private_enabled_for_site' ) }
 								onChange={ this.togglePrivacySetting }
-							>
-								<span className="jp-form-toggle-explanation">
-									{ __( 'Video Privacy: Restrict views to members of this site', 'jetpack' ) }
-								</span>
-							</CompactFormToggle>
+								label={ __( 'Video Privacy: Restrict views to members of this site', 'jetpack' ) }
+							/>
 						</FormFieldset>
 					</>
 				) }
@@ -143,6 +139,7 @@ class Media extends React.Component {
 						plan={ getJetpackProductUpsellByFeature( FEATURE_VIDEOPRESS ) }
 						feature="jetpack_videopress"
 						href={ upgradeUrl }
+						rna
 					/>
 				) }
 			</SettingsCard>

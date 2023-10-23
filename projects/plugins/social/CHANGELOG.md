@@ -5,6 +5,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.0 - 2023-09-20
+### Added
+- Add the change settings logic in Social for the auto conversion feature. [#32712]
+
+### Changed
+- Changed logic that disables the connections based on the auto-conversion feature. [#32671]
+- General: remove WP 6.1 backwards compatibility checks. [#32772]
+- General: update WordPress version requirements to WordPress 6.2. [#32762]
+- Updated Jetpack submenu sort order so individual features are alpha-sorted. [#32958]
+- Updated package dependencies. [#32803], [#32804], [#32966]
+- Updated package dependencies. [#33001]
+
+## 2.2.0 - 2023-08-23
+### Added
+- Add admin-page upsell notice [#32128]
+- Add new nudge in the editor to upgrade to the Advanced plan that will appear every 3 months [#32087]
+- Add SIG toggle for Jetpack Settings [#32475]
+- Add the new auto-conversion toggle for Social [#32597]
+- Add check for checking if user is on Basic plan [#32112]
+
+### Changed
+- Changed JITM so it can be properly dismissed. [#32033]
+- Jetpack editor extensions: use shared component for the logo. [#32257]
+- Moved store to publicize-components package. [#32317]
+- Social: Implement the new design for the connection toggles. [#32305]
+- Updated package dependencies. [#32166]
+- Use a new method to render Connection initial state. [#32499]
+
+### Fixed
+- Fixed checkout link so it's not siteless. [#32254]
+
+## 2.1.0 - 2023-08-01
+### Changed
+- General: indicate full compatibility with the latest version of WordPress, 6.3. [#31910]
+- Refactor TemplatePicker component, so inner part can be use in it's own without a modal. [#31740]
+- Social: Update the screenshots to reflect the current UI [#31832]
+- Updated package dependencies. [#31659, #31661, #31769, #31785, #31872, #31923, #32040]
+
+### Fixed
+- Fix admin page unit test [#31417]
+
+## 2.0.0 - 2023-07-05
+### Added
+- Add authentication to Zendesk chat widget. [#31339]
+
+### Changed
+- Social: change the admin page plan redirect link. [#31195]
+- Social: update the Readme to better reflect new features. [#31686]
+- Updated package dependencies.
+
+### Fixed
+- Social: fix the connection state to ensure that new connections are disabled by default when there are no shares left. [#31168]
+- Social Review Prompt: fix the state so it is shown when Jetpack is also active. [#31456]
+
+## 1.11.0 - 2023-06-06
+### Added
+- Added feature flag for Mastodon preview [#30919]
+- Jetpack Social: Add a notice to let users know Instagram is available [#30777]
+
+### Changed
+- Remove conditional rendering from zendesk chat widget component due to it being handled by an api endpoint now [#29942]
+- Updated package dependencies.
+- Updates the enhanced publishing feature check [#29881]
+
+### Deprecated
+- Minor changes around upcoming functionality change in Twitter. [#30272]
+
+## 1.10.0 - 2023-05-02
+### Added
+- Social: Updating plugin version. [#30158]
+
+### Changed
+- Added dynamic pricing to Social admin page. [#30105]
+- Updated package dependencies. [#29565, #29854, #29857, #30019]
+- Update WordPress version requirements. Now requires version 6.1. [#30120]
+
+### Fixed
+- Dashboard: ensure the link to the post editor works, even when WordPress is installed in a subdirectory. [#30159]
+- Jetpack Social: Render Social Image Generator panel even when SIG's default is disabled [#30358]
+- Temporarily removed review prompts to fix the plugin's UI state. [#30101]
+
 ## 1.9.1 - 2023-04-06
 ### Fixed
 - Reinstated is_social_image_generator_enabled for backwards compatibility. [#29952]

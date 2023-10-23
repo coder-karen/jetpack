@@ -19,6 +19,7 @@
 		"automattic/jetpack-backup": "@dev",
 		"automattic/jetpack-blaze": "@dev",
 		"automattic/jetpack-blocks": "@dev",
+		"automattic/jetpack-boost-speed-score": "@dev",
 		"automattic/jetpack-compat": "@dev",
 		"automattic/jetpack-composer-plugin": "@dev",
 		"automattic/jetpack-config": "@dev",
@@ -29,8 +30,9 @@
 		"automattic/jetpack-forms": "@dev",
 		"automattic/jetpack-google-fonts-provider": "@dev",
 		"automattic/jetpack-identity-crisis": "@dev",
-		"automattic/jetpack-ip": "@dev",
+		"automattic/jetpack-image-cdn": "@dev",
 		"automattic/jetpack-import": "@dev",
+		"automattic/jetpack-ip": "@dev",
 		"automattic/jetpack-jitm": "@dev",
 		"automattic/jetpack-lazy-images": "@dev",
 		"automattic/jetpack-licensing": "@dev",
@@ -56,7 +58,7 @@
 		"antecedent/patchwork": "2.1.25",
 		"automattic/jetpack-changelogger": "@dev",
 		"johnkary/phpunit-speedtrap": "^4.0.0 || ^2.0.0 || ^1.1.0",
-		"yoast/phpunit-polyfills": "1.0.4"
+		"yoast/phpunit-polyfills": "1.1.0"
 	},
 	"scripts": {
 		"build-production": [
@@ -101,7 +103,7 @@
 		"platform": {
 			"ext-intl": "0.0.0"
 		},
-		"autoloader-suffix": "f11009ded9fc4592b6a05b61ce272b3c_jetpackⓥ12_1_a_6",
+		"autoloader-suffix": "f11009ded9fc4592b6a05b61ce272b3c_jetpackⓥ12_8_a_2",
 		"allow-plugins": {
 			"automattic/jetpack-autoloader": true,
 			"automattic/jetpack-composer-plugin": true

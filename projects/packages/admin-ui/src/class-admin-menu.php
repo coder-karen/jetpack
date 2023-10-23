@@ -13,7 +13,7 @@ namespace Automattic\Jetpack\Admin_UI;
  */
 class Admin_Menu {
 
-	const PACKAGE_VERSION = '0.2.19';
+	const PACKAGE_VERSION = '0.2.23';
 
 	/**
 	 * Whether this class has been initialized
@@ -60,7 +60,7 @@ class Admin_Menu {
 			);
 
 			// Add an Anti-spam menu item for Jetpack.
-			self::add_menu( __( 'Anti-Spam', 'jetpack-admin-ui' ), __( 'Anti-Spam', 'jetpack-admin-ui' ), 'manage_options', 'akismet-key-config', array( 'Akismet_Admin', 'display_page' ) );
+			self::add_menu( __( 'Akismet Anti-spam', 'jetpack-admin-ui' ), __( 'Akismet Anti-spam', 'jetpack-admin-ui' ), 'manage_options', 'akismet-key-config', array( 'Akismet_Admin', 'display_page' ) );
 
 		}
 	}
@@ -73,7 +73,7 @@ class Admin_Menu {
 	public static function admin_menu_hook_callback() {
 		$can_see_toplevel_menu  = true;
 		$jetpack_plugin_present = class_exists( 'Jetpack_React_Page' );
-		$icon                   = class_exists( '\Automattic\Jetpack\Assets\Logo' )
+		$icon                   = method_exists( '\Automattic\Jetpack\Assets\Logo', 'get_base64_logo' )
 			? ( new \Automattic\Jetpack\Assets\Logo() )->get_base64_logo()
 			: 'dashicons-admin-plugins';
 
@@ -104,7 +104,13 @@ class Admin_Menu {
 			function ( $a, $b ) {
 				$position_a = empty( $a['position'] ) ? 0 : $a['position'];
 				$position_b = empty( $b['position'] ) ? 0 : $b['position'];
-				return $position_a - $position_b;
+				$result     = $position_a - $position_b;
+
+				if ( 0 === $result ) {
+					$result = strcmp( $a['menu_title'], $b['menu_title'] );
+				}
+
+				return $result;
 			}
 		);
 
@@ -150,7 +156,7 @@ class Admin_Menu {
 	 *                              and only include lowercase alphanumeric, dashes, and underscores characters
 	 *                              to be compatible with sanitize_key().
 	 * @param callable $function    The function to be called to output the content for this page.
-	 * @param int      $position    The position in the menu order this item should appear.
+	 * @param int      $position    The position in the menu order this item should appear. Leave empty typically.
 	 *
 	 * @return string The resulting page's hook_suffix
 	 */
@@ -198,5 +204,4 @@ class Admin_Menu {
 		$url = $fallback ? $fallback : admin_url();
 		return $url;
 	}
-
 }

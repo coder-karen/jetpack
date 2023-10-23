@@ -18,7 +18,7 @@
 	},
 	"require-dev": {
 		"automattic/jetpack-changelogger": "@dev",
-		"yoast/phpunit-polyfills": "1.0.4"
+		"yoast/phpunit-polyfills": "1.1.0"
 	},
 	"autoload": {
 		"classmap": [
@@ -56,7 +56,7 @@
 		"wp-plugin-slug": "jetpack-search",
 		"wp-svn-autopublish": true,
 		"changelogger": {
-			"link-template": "https://github.com/Automattic/jetpack-search-plugin/compare/v${old}...v${new}"
+			"link-template": "https://github.com/Automattic/jetpack-search-plugin/compare/${old}...${new}"
 		},
 		"version-constants": {
 			"JETPACK_SEARCH_PLUGIN__VERSION": "jetpack-search.php"

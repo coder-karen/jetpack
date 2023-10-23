@@ -23,7 +23,6 @@ class Admin_Menu extends Base_Admin_Menu {
 	public function reregister_menu_items() {
 		// Remove separators.
 		remove_menu_page( 'separator1' );
-
 		$this->add_stats_menu();
 		$this->add_upgrades_menu();
 		$this->add_posts_menu();
@@ -38,7 +37,6 @@ class Admin_Menu extends Base_Admin_Menu {
 		$this->add_tools_menu();
 		$this->add_options_menu();
 		$this->add_jetpack_menu();
-		$this->add_gutenberg_menus();
 
 		// Remove Links Manager menu since its usage is discouraged. https://github.com/Automattic/wp-calypso/issues/51188.
 		// @see https://core.trac.wordpress.org/ticket/21307#comment:73.
@@ -76,20 +74,6 @@ class Admin_Menu extends Base_Admin_Menu {
 	}
 
 	/**
-	 * Point the Site Editor's `< Dashboard` link to wpcom home.
-	 *
-	 * Although this isn't strictly an admin menu item, it belongs here because it's part of
-	 * changing wp-admin links to their wp.com equivalents.
-	 *
-	 * @param  array $settings Editor settings.
-	 * @return array           Updated Editor settings.
-	 */
-	public function site_editor_dashboard_link( $settings ) {
-		$settings['__experimentalDashboardLink'] = 'https://wordpress.com/home/' . $this->domain;
-		return $settings;
-	}
-
-	/**
 	 * Check if Links Manager is being used.
 	 */
 	public function should_disable_links_manager() {
@@ -108,7 +92,7 @@ class Admin_Menu extends Base_Admin_Menu {
 		);
 
 		// Ordered links by ID descending, check if the first ID is more than $max_default_id.
-		if ( count( $link_manager_links ) > 0 && $link_manager_links[0]->link_id > $max_default_id ) {
+		if ( is_countable( $link_manager_links ) && count( $link_manager_links ) > 0 && $link_manager_links[0]->link_id > $max_default_id ) {
 			return false;
 		}
 
@@ -119,14 +103,19 @@ class Admin_Menu extends Base_Admin_Menu {
 	 * Adds My Home menu.
 	 */
 	public function add_my_home_menu() {
-		$this->update_menu( 'index.php', 'https://wordpress.com/home/' . $this->domain, __( 'My Home', 'jetpack' ), 'edit_posts', 'dashicons-admin-home' );
+
+		if ( self::DEFAULT_VIEW !== $this->get_preferred_view( 'index.php' ) ) {
+			return;
+		}
+
+		$this->update_menu( 'index.php', 'https://wordpress.com/home/' . $this->domain, __( 'My Home', 'jetpack' ), 'read', 'dashicons-admin-home' );
 	}
 
 	/**
-	 * Adds Inbox menu.
+	 * Adds My Mailboxes menu.
 	 */
-	public function add_inbox_menu() {
-		add_menu_page( __( 'Inbox', 'jetpack' ), __( 'Inbox', 'jetpack' ), 'manage_options', 'https://wordpress.com/inbox/' . $this->domain, null, 'dashicons-email', '4.64424' );
+	public function add_my_mailboxes_menu() {
+		add_menu_page( __( 'My Mailboxes', 'jetpack' ), __( 'My Mailboxes', 'jetpack' ), 'manage_options', 'https://wordpress.com/mailboxes/' . $this->domain, null, 'dashicons-email', '4.64424' );
 	}
 
 	/**
@@ -187,17 +176,16 @@ class Admin_Menu extends Base_Admin_Menu {
 		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'edit.php' ) ) {
 			$submenus_to_update['edit.php']     = 'https://wordpress.com/posts/' . $this->domain;
 			$submenus_to_update['post-new.php'] = 'https://wordpress.com/post/' . $this->domain;
+			$this->update_submenus( 'edit.php', $submenus_to_update );
 		}
 
 		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'edit-tags.php?taxonomy=category' ) ) {
-			$submenus_to_update['edit-tags.php?taxonomy=category'] = 'https://wordpress.com/settings/taxonomies/category/' . $this->domain;
+			$this->update_submenus( 'edit.php', array( 'edit-tags.php?taxonomy=category' => 'https://wordpress.com/settings/taxonomies/category/' . $this->domain ) );
 		}
 
 		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'edit-tags.php?taxonomy=post_tag' ) ) {
-			$submenus_to_update['edit-tags.php?taxonomy=post_tag'] = 'https://wordpress.com/settings/taxonomies/post_tag/' . $this->domain;
+			$this->update_submenus( 'edit.php', array( 'edit-tags.php?taxonomy=post_tag' => 'https://wordpress.com/settings/taxonomies/post_tag/' . $this->domain ) );
 		}
-
-		$this->update_submenus( 'edit.php', $submenus_to_update );
 	}
 
 	/**
@@ -316,6 +304,9 @@ class Admin_Menu extends Base_Admin_Menu {
 	 * Adds Plugins menu.
 	 */
 	public function add_plugins_menu() {
+		if ( self::CLASSIC_VIEW === $this->get_preferred_view( 'plugins.php' ) ) {
+			return;
+		}
 		$this->hide_submenu_page( 'plugins.php', 'plugin-install.php' );
 		$this->hide_submenu_page( 'plugins.php', 'plugin-editor.php' );
 
@@ -366,7 +357,9 @@ class Admin_Menu extends Base_Admin_Menu {
 	public function add_options_menu() {
 		$submenus_to_update = array();
 
-		$this->hide_submenu_page( 'options-general.php', 'sharing' );
+		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'options-general.php' ) ) {
+			$this->hide_submenu_page( 'options-general.php', 'sharing' );
+		}
 
 		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'options-general.php' ) ) {
 			$submenus_to_update['options-general.php'] = 'https://wordpress.com/settings/general/' . $this->domain;
@@ -376,17 +369,7 @@ class Admin_Menu extends Base_Admin_Menu {
 			$submenus_to_update['options-writing.php'] = 'https://wordpress.com/settings/writing/' . $this->domain;
 		}
 
-		if (
-			/**
-			 * Filter to enable the modernized Reading Settings in Calypso UI.
-			 *
-			 * @since 11.8
-			 * @module masterbar
-			 *
-			 * @param bool false Should the modernized Reading Settings be enabled? Default to false.
-			 */
-			apply_filters( 'calypso_use_modernized_reading_settings', false )
-			&& self::DEFAULT_VIEW === $this->get_preferred_view( 'options-reading.php' )
+		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'options-reading.php' )
 		) {
 			$submenus_to_update['options-reading.php'] = 'https://wordpress.com/settings/reading/' . $this->domain;
 		}
@@ -397,7 +380,9 @@ class Admin_Menu extends Base_Admin_Menu {
 
 		$this->update_submenus( 'options-general.php', $submenus_to_update );
 
-		add_submenu_page( 'options-general.php', esc_attr__( 'Performance', 'jetpack' ), __( 'Performance', 'jetpack' ), 'manage_options', 'https://wordpress.com/settings/performance/' . $this->domain, null, 1 );
+		add_submenu_page( 'options-general.php', esc_attr__( 'Newsletter', 'jetpack' ), __( 'Newsletter', 'jetpack' ), 'manage_options', 'https://wordpress.com/settings/newsletter/' . $this->domain, null, 7 );
+		add_submenu_page( 'options-general.php', esc_attr__( 'Podcasting', 'jetpack' ), __( 'Podcasting', 'jetpack' ), 'manage_options', 'https://wordpress.com/settings/podcasting/' . $this->domain, null, 8 );
+		add_submenu_page( 'options-general.php', esc_attr__( 'Performance', 'jetpack' ), __( 'Performance', 'jetpack' ), 'manage_options', 'https://wordpress.com/settings/performance/' . $this->domain, null, 9 );
 	}
 
 	/**
@@ -415,35 +400,17 @@ class Admin_Menu extends Base_Admin_Menu {
 		add_submenu_page( 'jetpack', esc_attr__( 'Activity Log', 'jetpack' ), __( 'Activity Log', 'jetpack' ), 'manage_options', 'https://wordpress.com/activity-log/' . $this->domain, null, 2 );
 		add_submenu_page( 'jetpack', esc_attr__( 'Backup', 'jetpack' ), __( 'Backup', 'jetpack' ), 'manage_options', 'https://wordpress.com/backup/' . $this->domain, null, 3 );
 
-		$this->hide_submenu_page( 'jetpack', 'jetpack#/settings' );
-		$this->hide_submenu_page( 'jetpack', 'stats' );
-		$this->hide_submenu_page( 'jetpack', esc_url( Redirect::get_url( 'calypso-backups' ) ) );
-		$this->hide_submenu_page( 'jetpack', esc_url( Redirect::get_url( 'calypso-scanner' ) ) );
+		if ( self::DEFAULT_VIEW === $this->get_preferred_view( 'jetpack' ) ) {
+			$this->hide_submenu_page( 'jetpack', 'jetpack#/settings' );
+			$this->hide_submenu_page( 'jetpack', 'stats' );
+			$this->hide_submenu_page( 'jetpack', esc_url( Redirect::get_url( 'calypso-backups' ) ) );
+			$this->hide_submenu_page( 'jetpack', esc_url( Redirect::get_url( 'calypso-scanner' ) ) );
+		}
 
 		if ( ! $is_menu_updated ) {
 			// Remove the submenu auto-created by Core just to be sure that there no issues on non-admin roles.
 			remove_submenu_page( 'jetpack', 'jetpack' );
 		}
-	}
-
-	/**
-	 * Update Site Editor menu item's link and position.
-	 */
-	public function add_gutenberg_menus() {
-		if ( self::CLASSIC_VIEW === $this->get_preferred_view( 'site-editor.php' ) ) {
-			return;
-		}
-
-		$this->update_menu( 'gutenberg-edit-site', 'https://wordpress.com/site-editor/' . $this->domain, null, null, null, 59 );
-
-		// Gutenberg 11.9 moves the Site Editor to an Appearance submenu as Editor.
-		$submenus_to_update = array(
-			// Keep the old rule in order to Calypsoify the route for GB < 13.7.
-			'gutenberg-edit-site' => 'https://wordpress.com/site-editor/' . $this->domain,
-			// New route: Gutenberg 13.7 changes the site editor menu item slug and url.
-			'site-editor.php'     => 'https://wordpress.com/site-editor/' . $this->domain,
-		);
-		$this->update_submenus( 'themes.php', $submenus_to_update );
 	}
 
 	/**

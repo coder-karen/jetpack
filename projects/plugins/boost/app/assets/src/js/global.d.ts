@@ -14,11 +14,14 @@ declare global {
 		nonce: string;
 	};
 
+	const jbImageGuide: {
+		proxyNonce: string;
+		ajax_url: string;
+	};
+
 	// Constants provided by the plugin.
 	const Jetpack_Boost: {
 		preferences: {
-			showRatingPrompt: boolean;
-			showScorePrompt: boolean;
 			prioritySupport: boolean;
 		};
 		isPremium: boolean;
@@ -29,21 +32,20 @@ declare global {
 		};
 		connectionIframeOriginUrl: string;
 		connection: ConnectionStatus;
-		showRatingPromptNonce?: string;
-		showScorePromptNonce?: string;
-		dismissedScorePrompts: string[];
 		superCache: {
 			pluginActive: boolean;
 			cacheEnabled: boolean;
-			disableCacheKey?: string;
+			cachePageSecret?: string;
 		};
 		site: {
 			domain: string;
 			url: string;
 			online: boolean;
 			assetPath: string;
-			getStarted: boolean;
 			canResizeImages: boolean;
+			postTypes: {
+				[ key: string ]: string;
+			};
 		};
 		optimizations: Optimizations;
 		shownAdminNoticeIds: string[];
@@ -72,6 +74,16 @@ declare global {
 			eventType: string,
 			eventProp: TracksEventProperites
 		): JQueryXHR;
+	};
+
+	const jetpackBoostAnalytics: {
+		tracksData: {
+			userData: {
+				userid: number;
+				username: string;
+			};
+			blogId: number;
+		};
 	};
 }
 

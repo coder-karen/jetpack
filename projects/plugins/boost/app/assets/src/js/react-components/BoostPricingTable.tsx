@@ -58,6 +58,11 @@ const automaticallyUpdatedContext = (
 	</span>
 );
 
+const imageCdnContext = __(
+	`Deliver images from Jetpack's Content Delivery Network. Automatically resizes your images to an appropriate size, converts them to modern efficient formats like WebP, and serves them from a worldwide network of servers.`,
+	'jetpack-boost'
+);
+
 const manuallyUpdatedContext = (
 	<span>
 		{ __(
@@ -92,6 +97,21 @@ const manuallyUpdatedContext = (
 	</span>
 );
 
+const concatenateContext = __(
+	'Boost your website performance by merging and compressing JavaScript and CSS files, reducing site loading time and number of requests.',
+	'jetpack-boost'
+);
+
+const performanceHistoryContext = __(
+	'Get access to your historical performance scores and see advanced Core Web Vitals data.',
+	'jetpack-boost'
+);
+
+const isaContext = __(
+	"Scan your site for images that aren't properly sized for the device they're being viewed on.",
+	'jetpack-boost'
+);
+
 export const BoostPricingTable = ( {
 	pricing,
 	onPremiumCTA,
@@ -99,10 +119,15 @@ export const BoostPricingTable = ( {
 	chosenFreePlan,
 	chosenPaidPlan,
 } ) => {
-	// If the first year discount ends, we want to remove the label without updating the plugin.
-	const promoLabel = pricing.yearly.isIntroductoryOffer
-		? __( 'First Year Discount', 'jetpack-boost' )
-		: '';
+	// If no pricing info is available, set up a fake object to avoid errors.
+	if ( ! pricing || ! pricing.yearly ) {
+		pricing = { yearly: {} };
+	}
+
+	// If the first year discount ends, we want to show the default label.
+	const legend = pricing.yearly.isIntroductoryOffer
+		? __( '/month for the first year, billed yearly', 'jetpack-boost' )
+		: undefined;
 
 	const isDiscounted = pricing.yearly.priceBefore > pricing.yearly.priceAfter;
 
@@ -113,22 +138,47 @@ export const BoostPricingTable = ( {
 				{
 					name: __( 'Optimize CSS Loading', 'jetpack-boost' ),
 					tooltipInfo: cssOptimizationContext,
+					tooltipPlacement: 'bottom-start',
+				},
+				{
+					name: __( 'Historical performance scores', 'jetpack-boost' ),
+					tooltipInfo: performanceHistoryContext,
+					tooltipPlacement: 'bottom-start',
 				},
 				{
 					name: __( 'Defer non-essential JavaScript', 'jetpack-boost' ),
 					tooltipInfo: deferJSContext,
+					tooltipPlacement: 'bottom-start',
 				},
 				{
 					name: __( 'Lazy image loading', 'jetpack-boost' ),
 					tooltipInfo: lazyLoadingContext,
+					tooltipPlacement: 'bottom-start',
 				},
 				{
 					name: __( 'Image guide', 'jetpack-boost' ),
 					tooltipInfo: imageGuideContext,
+					tooltipPlacement: 'bottom-start',
+				},
+				{
+					name: __( 'Image CDN', 'jetpack-boost' ),
+					tooltipInfo: imageCdnContext,
+					tooltipPlacement: 'bottom-start',
+				},
+				{
+					name: __( 'Concatenate JS and CSS', 'jetpack-boost' ),
+					tooltipInfo: concatenateContext,
+					tooltipPlacement: 'bottom-start',
+				},
+				{
+					name: __( 'Automatic image size analysis', 'jetpack-boost' ),
+					tooltipInfo: isaContext,
+					tooltipPlacement: 'bottom-start',
 				},
 				{
 					name: __( 'Dedicated email support', 'jetpack-boost' ),
 					tooltipInfo: <span dangerouslySetInnerHTML={ { __html: supportContext } }></span>,
+					tooltipPlacement: 'bottom-start',
 				},
 			] }
 		>
@@ -139,7 +189,7 @@ export const BoostPricingTable = ( {
 						offPrice={ isDiscounted ? pricing.yearly.priceAfter / 12 : null }
 						currency={ pricing.yearly.currencyCode }
 						hideDiscountLabel={ false }
-						promoLabel={ promoLabel }
+						legend={ legend }
 					/>
 					<Button
 						onClick={ onPremiumCTA }
@@ -158,6 +208,14 @@ export const BoostPricingTable = ( {
 					tooltipClassName="wide-tooltip"
 				/>
 				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem
+					isIncluded={ true }
+					label={ <strong>{ __( 'Included + quality settings', 'jetpack-boost' ) }</strong> }
+					tooltipInfo={ __( 'Fine-tune image quality settings to your liking.', 'jetpack-boost' ) }
+				/>
 				<PricingTableItem isIncluded={ true } />
 				<PricingTableItem isIncluded={ true } />
 				<PricingTableItem isIncluded={ true } />
@@ -187,9 +245,13 @@ export const BoostPricingTable = ( {
 					tooltipInfo={ manuallyUpdatedContext }
 					tooltipClassName="wide-tooltip"
 				/>
+				<PricingTableItem isIncluded={ false } label={ __( 'Not included', 'jetpack-boost' ) } />
 				<PricingTableItem isIncluded={ true } />
 				<PricingTableItem isIncluded={ true } />
 				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ true } />
+				<PricingTableItem isIncluded={ false } label={ __( 'Not included', 'jetpack-boost' ) } />
 				<PricingTableItem isIncluded={ false } label={ __( 'Not included', 'jetpack-boost' ) } />
 			</PricingTableColumn>
 		</PricingTable>

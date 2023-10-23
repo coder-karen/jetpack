@@ -20,10 +20,10 @@ import {
 } from './types';
 
 const {
-	paidFeatures = <paidFeaturesProp>{},
-	siteProductData = <siteProductOriginalProps>{},
-	productData = <productOriginalProps>{},
-	productPrice = <productPriceOriginalProps>{},
+	paidFeatures = < paidFeaturesProp >{},
+	siteProductData = < siteProductOriginalProps >{},
+	productData = < productOriginalProps >{},
+	productPrice = < productPriceOriginalProps >{},
 } = window && window.jetpackVideoPressInitialState ? window.jetpackVideoPressInitialState : {};
 
 export const usePlan = (): usePlanProps => {
@@ -50,8 +50,10 @@ export const usePlan = (): usePlanProps => {
 	}
 
 	const hasVideoPressPurchase = [
+		'jetpack_videopress_bi_yearly',
 		'jetpack_videopress',
 		'jetpack_videopress_monthly',
+		'jetpack_complete_bi_yearly',
 		'jetpack_complete',
 		'jetpack_complete_monthly',
 		'jetpack_business',
@@ -69,6 +71,7 @@ export const usePlan = (): usePlanProps => {
 		'value_bundle',
 		'value_bundle_monthly',
 		'value_bundle-2y',
+		'value_bundle-3y',
 
 		// WPCOM PRO plans
 		'pro-plan',
@@ -79,11 +82,13 @@ export const usePlan = (): usePlanProps => {
 		'business-bundle',
 		'business-bundle-monthly',
 		'business-bundle-2y',
+		'business-bundle-3y',
 
 		// WPCOM eCommerce plans
 		'ecommerce-bundle',
 		'ecommerce-bundle-monthly',
 		'ecommerce-bundle-2y',
+		'ecommerce-bundle-3y',
 	].some( plan => hasPurchase( plan ) );
 
 	return {

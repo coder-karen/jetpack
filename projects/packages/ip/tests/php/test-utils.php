@@ -283,10 +283,10 @@ final class UtilsTest extends PHPUnit\Framework\TestCase {
 		$converted_ip_address = Utils::convert_ip_address( '1.2.3.4' );
 		if ( function_exists( 'inet_pton' ) ) {
 			// if inet_pton() is available, the IP address should be converted to the in_addr representation as a string.
-			$this->assertEquals( gettype( $converted_ip_address ), 'string' );
+			$this->assertEquals( 'string', gettype( $converted_ip_address ) );
 		} else {
 			// if inet_pton() is not available, the IP address should be converted to an integer.
-			$this->assertEquals( gettype( $converted_ip_address ), 'integer' );
+			$this->assertEquals( 'integer', gettype( $converted_ip_address ) );
 		}
 	}
 
@@ -355,5 +355,4 @@ final class UtilsTest extends PHPUnit\Framework\TestCase {
 		$this->assertTrue( Utils::validate_ip_range( '1.1.1.1', '1.1.1.1' ) );
 		$this->assertTrue( Utils::validate_ip_range( '2001:db8::1', '2001:db8::1' ) );
 	}
-
 }

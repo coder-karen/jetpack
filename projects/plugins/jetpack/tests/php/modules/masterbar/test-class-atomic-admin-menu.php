@@ -278,16 +278,16 @@ class Test_Atomic_Admin_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests add_inbox_menu
+	 * Tests add_my_mailboxes_menu
 	 *
-	 * @covers ::add_inbox_menu
+	 * @covers ::add_my_mailboxes_menu
 	 */
-	public function test_add_inbox_menu() {
+	public function test_add_my_mailboxes_menu() {
 		global $menu;
 
-		static::$admin_menu->add_inbox_menu();
+		static::$admin_menu->add_my_mailboxes_menu();
 
-		$this->assertSame( 'https://wordpress.com/inbox/' . static::$domain, $menu['4.64424'][2] );
+		$this->assertSame( 'https://wordpress.com/mailboxes/' . static::$domain, $menu['4.64424'][2] );
 	}
 
 	/**
@@ -303,13 +303,30 @@ class Test_Atomic_Admin_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests add_gutenberg_menus
+	 * Tests add_users_menu
 	 *
-	 * @covers ::add_gutenberg_menus
+	 * @covers ::add_users_menu
 	 */
-	public function test_add_gutenberg_menus() {
+	public function test_add_users_menu() {
+		global $submenu;
+
+		static::$admin_menu->add_users_menu();
+		$menu_position = 6;
+		if ( is_multisite() ) {
+			$menu_position = 5;
+		}
+
+		$this->assertSame( 'https://wordpress.com/subscribers/' . static::$domain, $submenu['users.php'][ $menu_position ][2] );
+	}
+
+	/**
+	 * Tests remove_gutenberg_menu
+	 *
+	 * @covers ::remove_gutenberg_menu
+	 */
+	public function test_remove_gutenberg_menu() {
 		global $menu;
-		static::$admin_menu->add_gutenberg_menus();
+		static::$admin_menu->remove_gutenberg_menu();
 
 		// Gutenberg plugin menu should not be visible.
 		$this->assertArrayNotHasKey( 101, $menu );
@@ -338,27 +355,16 @@ class Test_Atomic_Admin_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the filter for adding the Site Logs menu
+	 * Tests add_tools_menu
 	 *
 	 * @covers ::add_tools_menu
 	 */
-	public function test_site_logs_menu_filter() {
+	public function test_add_site_monitoring_menu() {
 		global $submenu;
 
-		add_filter( 'jetpack_show_wpcom_site_logs_menu', '__return_false', 99 );
 		static::$admin_menu->add_tools_menu();
-		remove_filter( 'jetpack_show_wpcom_site_logs_menu', '__return_false', 99 );
+		$menu_position = 7;
 
-		$links = wp_list_pluck( array_values( $submenu['tools.php'] ), 2 );
-
-		$this->assertNotContains( 'https://wordpress.com/site-logs/' . static::$domain, $links );
-
-		add_filter( 'jetpack_show_wpcom_site_logs_menu', '__return_true', 99 );
-		static::$admin_menu->add_tools_menu();
-		remove_filter( 'jetpack_show_wpcom_site_logs_menu', '__return_true', 99 );
-
-		$links = wp_list_pluck( array_values( $submenu['tools.php'] ), 2 );
-
-		$this->assertContains( 'https://wordpress.com/site-logs/' . static::$domain, $links );
+		$this->assertSame( 'https://wordpress.com/site-monitoring/' . static::$domain, $submenu['tools.php'][ $menu_position ][2] );
 	}
 }

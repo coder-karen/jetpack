@@ -1,7 +1,8 @@
 import { Path, SVG, G, Polygon } from '@wordpress/components';
 import classNames from 'classnames';
+import SocialLogo from 'social-logos';
 import styles from './style.module.scss';
-import { BaseIconProps, SocialIconWrapperProps } from './types';
+import { BaseIconProps } from './types';
 import type React from 'react';
 
 /**
@@ -171,6 +172,16 @@ export const CheckmarkIcon: React.FC< BaseIconProps > = ( {
 	</IconWrapper>
 );
 
+export const ClipboardIcon: React.FC< BaseIconProps > = ( {
+	size,
+	className = styles[ 'clipboard-icon' ],
+	color,
+} ) => (
+	<IconWrapper className={ className } size={ size } color={ color }>
+		<Path d="M5.625 5.5H15.375C15.444 5.5 15.5 5.55596 15.5 5.625V15.375C15.5 15.444 15.444 15.5 15.375 15.5H5.625C5.55596 15.5 5.5 15.444 5.5 15.375V5.625C5.5 5.55596 5.55596 5.5 5.625 5.5ZM4 5.625C4 4.72754 4.72754 4 5.625 4H15.375C16.2725 4 17 4.72754 17 5.625V10V15.375C17 16.2725 16.2725 17 15.375 17C15.375 17 6.52246 17 5.625 17C4.72754 17 4 16.2725 4 15.375V5.625ZM18.5 17.2812V8.28125H20V17.2812C20 18.7995 18.7704 20 17.2511 20H6.25V18.5H17.2511C17.9409 18.5 18.5 17.9721 18.5 17.2812Z" />
+	</IconWrapper>
+);
+
 export const JetpackIcon: React.FC< BaseIconProps > = ( {
 	size,
 	className = styles.jetpack,
@@ -188,110 +199,16 @@ export const JetpackIcon: React.FC< BaseIconProps > = ( {
 	);
 };
 
-/**
- * Wrapper of the Social Icons. Adds a default CSS class.
- *
- * @param {SocialIconWrapperProps} props - Component props.
- * @returns {React.ReactNode} - Social Icon component.
- */
-const SocialIconWrapper: React.FC< SocialIconWrapperProps > = ( {
-	className,
-	fill = 'none',
-	size,
-	children,
-} ) => {
+export const ShareIcon: React.FC< BaseIconProps > = ( { size = 16, className, color } ) => {
 	return (
-		<IconWrapper
-			className={ classNames( styles.socialIcon, className ) }
-			size={ size }
-			color={ fill }
-		>
-			{ children }
+		<IconWrapper className={ className } size={ size } color={ color } viewBox="0 0 16 16">
+			<Path
+				fill="#161722"
+				fillRule="evenodd"
+				d="M8.3 4.66C3.85 5.308.727 9.75.034 13.69l-.02.117c-.137.842.809 1.232 1.446.68 2.013-1.745 3.648-2.475 5.318-2.719a10.482 10.482 0 011.524-.103v2.792c0 .694.82 1.041 1.3.55l6.176-6.307a.79.79 0 00.012-1.088L9.614 1.004C9.14.496 8.301.84 8.301 1.542v3.117zm1.525-1.175v1.85a.773.773 0 01-.654.77l-.655.096c-2.133.311-3.987 1.732-5.295 3.672-.472.7-.854 1.44-1.143 2.18a12.32 12.32 0 011.675-.972c1.58-.75 3.048-.972 4.548-.972h.762a.77.77 0 01.762.779v1.69l4.347-4.44-4.347-4.653z"
+				clipRule="evenodd"
+			></Path>
 		</IconWrapper>
-	);
-};
-
-export const FacebookIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.facebook, className ) }
-		>
-			<Path
-				d="M12,2C6.5,2,2,6.5,2,12c0,5,3.7,9.1,8.4,9.9v-7H7.9V12h2.5V9.8c0-2.5,1.5-3.9,3.8-3.9c1.1,0,2.2,0.2,2.2,0.2v2.5h-1.3
-	c-1.2,0-1.6,0.8-1.6,1.6V12h2.8l-0.4,2.9h-2.3v7C18.3,21.1,22,17,22,12C22,6.5,17.5,2,12,2z"
-			/>
-		</SocialIconWrapper>
-	);
-};
-
-export const TwitterIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.twitter, className ) }
-		>
-			<Path
-				d="M19,3H5C3.895,3,3,3.895,3,5v14c0,1.105,0.895,2,2,2h14c1.105,0,2-0.895,2-2V5C21,3.895,20.105,3,19,3z M16.466,9.71
-		c0.004,0.099,0.007,0.198,0.007,0.298c0,3.045-2.318,6.556-6.556,6.556c-1.301,0-2.512-0.381-3.532-1.035
-		c0.18,0.021,0.364,0.032,0.55,0.032c1.079,0,2.073-0.368,2.862-0.986c-1.008-0.019-1.859-0.685-2.152-1.6
-		c0.141,0.027,0.285,0.041,0.433,0.041c0.21,0,0.414-0.028,0.607-0.081c-1.054-0.212-1.848-1.143-1.848-2.259
-		c0-0.01,0-0.019,0-0.029c0.311,0.173,0.666,0.276,1.044,0.288c-0.618-0.413-1.025-1.118-1.025-1.918
-		c0-0.422,0.114-0.818,0.312-1.158c1.136,1.394,2.834,2.311,4.749,2.407c-0.039-0.169-0.06-0.344-0.06-0.525
-		c0-1.272,1.032-2.304,2.304-2.304c0.663,0,1.261,0.28,1.682,0.728c0.525-0.103,1.018-0.295,1.463-0.559
-		c-0.172,0.538-0.537,0.99-1.013,1.275c0.466-0.056,0.91-0.18,1.323-0.363C17.306,8.979,16.916,9.385,16.466,9.71z"
-			/>
-		</SocialIconWrapper>
-	);
-};
-
-export const LinkedinIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.linkedin, className ) }
-		>
-			<Path d="M19.7 3H4.3C3.582 3 3 3.582 3 4.3v15.4c0 .718.582 1.3 1.3 1.3h15.4c.718 0 1.3-.582 1.3-1.3V4.3c0-.718-.582-1.3-1.3-1.3zM8.34 18.338H5.666v-8.59H8.34v8.59zM7.003 8.574c-.857 0-1.55-.694-1.55-1.548 0-.855.692-1.548 1.55-1.548.854 0 1.547.694 1.547 1.548 0 .855-.692 1.548-1.546 1.548zm11.335 9.764h-2.67V14.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.6 1.086-1.6 2.206v4.248h-2.668v-8.59h2.56v1.174h.036c.357-.675 1.228-1.387 2.527-1.387 2.703 0 3.203 1.78 3.203 4.092v4.71z" />
-		</SocialIconWrapper>
-	);
-};
-
-export const TumblrIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.tumblr, className ) }
-		>
-			<Path d="M19 3H5c-1.105 0-2 .895-2 2v14c0 1.105.895 2 2 2h14c1.105 0 2-.895 2-2V5c0-1.105-.895-2-2-2zm-5.57 14.265c-2.445.042-3.37-1.742-3.37-2.998V10.6H8.922V9.15c1.703-.615 2.113-2.15 2.21-3.026.006-.06.053-.084.08-.084h1.645V8.9h2.246v1.7H12.85v3.495c.008.476.182 1.13 1.08 1.107.3-.008.698-.094.907-.194l.54 1.6c-.205.297-1.12.642-1.946.657z" />
-		</SocialIconWrapper>
-	);
-};
-
-export const GoogleIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.google, className ) }
-		>
-			<Path d="M12.02 10.18v3.73h5.51c-.26 1.57-1.67 4.22-5.5 4.22-3.31 0-6.01-2.75-6.01-6.12s2.7-6.12 6.01-6.12c1.87 0 3.13.8 3.85 1.48l2.84-2.76C16.99 2.99 14.73 2 12.03 2c-5.52 0-10 4.48-10 10s4.48 10 10 10c5.77 0 9.6-4.06 9.6-9.77 0-.83-.11-1.42-.25-2.05h-9.36z" />
-		</SocialIconWrapper>
-	);
-};
-
-export const MastodonIcon: React.FC< SocialIconWrapperProps > = ( { fill, size, className } ) => {
-	return (
-		<SocialIconWrapper
-			fill={ fill }
-			size={ size }
-			className={ classNames( styles.mastodon, className ) }
-		>
-			<Path d="M 19.997205,6.2868955 C 19.729197,4.3162778 17.992912,2.7633017 15.93468,2.4623753 15.587434,2.4115195 14.271759,2.2264681 11.224008,2.2264681 h -0.02277 c -3.0485688,0 -3.7026204,0.1850577 -4.0498676,0.2359072 C 5.1504449,2.7549655 3.3231548,4.1503966 2.879815,6.1443318 2.6665754,7.1263038 2.6438193,8.2149794 2.6834329,9.2136207 c 0.056471,1.4321143 0.067433,2.8617113 0.1989115,4.2879943 0.090908,0.947406 0.2494696,1.887266 0.4745239,2.812521 0.4214237,1.708868 2.1273496,3.130966 3.7987144,3.71116 1.7894479,0.605052 3.7138403,0.705478 5.5577463,0.290088 0.202828,-0.04667 0.403445,-0.100873 0.601781,-0.162549 0.447558,-0.140863 0.972662,-0.298434 1.358683,-0.575188 0.0052,-0.004 0.0097,-0.0089 0.01266,-0.01471 0.0031,-0.0056 0.0047,-0.01218 0.005,-0.01866 v -1.382076 c -9.4e-5,-0.006 -0.0016,-0.01202 -0.0043,-0.01754 -0.0027,-0.0054 -0.0067,-0.01028 -0.01155,-0.01392 -0.0049,-0.0038 -0.01044,-0.0063 -0.01648,-0.0078 -0.006,-0.0013 -0.01218,-0.0013 -0.01825,7.1e-5 -1.181368,0.279106 -2.391962,0.419012 -3.606552,0.416801 -2.0902554,0 -2.6524392,-0.981126 -2.8134375,-1.3896 -0.1293933,-0.353009 -0.2115739,-0.721231 -0.2444221,-1.095331 -3.29e-4,-0.0063 8.463e-4,-0.0125 0.00348,-0.01832 0.00253,-0.0056 0.00649,-0.01077 0.011389,-0.01471 0.0049,-0.004 0.010755,-0.0068 0.016957,-0.0081 0.00617,-0.0014 0.012655,-0.0012 0.018808,3.52e-4 1.1616831,0.277201 2.3525266,0.417106 3.5475526,0.416801 0.287408,0 0.573966,0 0.861395,-0.0074 1.201893,-0.03335 2.468685,-0.0942 3.6512,-0.322606 0.02952,-0.0058 0.059,-0.01091 0.0843,-0.01833 1.865209,-0.354279 3.640245,-1.466278 3.820617,-4.282163 0.0068,-0.110869 0.0236,-1.161191 0.0236,-1.276219 8.46e-4,-0.390958 0.127273,-2.7733487 -0.01856,-4.2371335 z m -2.87074,7.0263315 H 15.165179 V 8.5617567 c 0,-1.0003116 -0.421434,-1.5104614 -1.278618,-1.5104614 -0.942305,0 -1.414292,0.6035217 -1.414292,1.7955379 V 11.44764 H 10.522764 V 8.8468332 c 0,-1.1920162 -0.472832,-1.7955379 -1.4151372,-1.7955379 -0.8521293,0 -1.2777701,0.5101498 -1.2786179,1.5104614 V 13.313227 H 5.8693944 V 8.4175496 c 0,-1.0003133 0.2582014,-1.7949986 0.7745804,-2.3840846 0.5326766,-0.587672 1.2314038,-0.8894211 2.0986981,-0.8894211 1.003817,0 1.7623841,0.3817657 2.2680911,1.1445204 l 0.488023,0.8102521 0.488846,-0.8102521 c 0.505705,-0.7627547 1.264275,-1.1445204 2.26642,-1.1445204 0.866449,0 1.565152,0.3017491 2.099521,0.8894211 0.516404,0.5885211 0.774583,1.3832066 0.774583,2.3840846 z" />
-		</SocialIconWrapper>
 	);
 };
 
@@ -308,25 +225,14 @@ const jetpackIcons = {
 	star: StarIcon,
 	videopress: VideopressIcon,
 	jetpack: JetpackIcon,
-};
-
-const socialIcons = {
-	facebook: FacebookIcon,
-	twitter: TwitterIcon,
-	linkedin: LinkedinIcon,
-	tumblr: TumblrIcon,
-	google: GoogleIcon,
-	mastodon: MastodonIcon,
+	share: ShareIcon,
 };
 
 const iconsMap = {
 	...jetpackIcons,
-	...socialIcons,
 };
 
 export type JetpackIconSlug = keyof typeof jetpackIcons;
-
-export type SocialIconSlug = keyof typeof socialIcons;
 
 export type IconsMap = typeof iconsMap;
 
@@ -347,9 +253,13 @@ export function getIconBySlug< Slug extends IconSlug >( slug: Slug ): IconsMap[ 
 }
 
 export const SocialServiceIcon: React.FC< {
-	serviceName: keyof typeof socialIcons;
+	serviceName: React.ComponentProps< typeof SocialLogo >[ 'icon' ];
 	className?: string;
 } > = ( { serviceName, className } ) => {
-	const Icon = getIconBySlug( serviceName );
-	return Icon ? <Icon className={ className } /> : null;
+	return (
+		<SocialLogo
+			className={ classNames( styles.socialIcon, styles[ serviceName ], className ) }
+			icon={ serviceName }
+		/>
+	);
 };
