@@ -145,7 +145,6 @@ async function buildMilestoneInfo( octokit, owner, repo, number ) {
 		const info = await getMilestoneDates( plugin, nextMilestone );
 
 		pluginInfo += info;
-		}
 	}
 
 	return pluginInfo;
