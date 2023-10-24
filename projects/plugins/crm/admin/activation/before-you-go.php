@@ -42,7 +42,7 @@ if ( ! defined( 'ZEROBSCRM_PATH' ) ) {
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta name="viewport" content="width=device-width">
-	<title><?php esc_html_e( 'Before you Go...', 'zero-bs-crm' ); ?></title>
+	<title><?php esc_html_e( 'Before you Go.....', 'zero-bs-crm' ); ?></title>
 	<?php
 	wp_print_styles( $style_handles );
 	?>
