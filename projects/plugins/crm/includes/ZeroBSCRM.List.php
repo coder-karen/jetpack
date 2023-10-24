@@ -119,6 +119,7 @@ class zeroBSCRM_list{
 
     }
 
+	// Testing changes
     public function drawListView(){
 
         if (empty($this->objType) || empty($this->postType) || empty($this->postPage) || empty($this->singular) || empty($this->plural)){
