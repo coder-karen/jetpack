@@ -8,7 +8,7 @@
 namespace Automattic\Jetpack;
 
 /**
- * Class description.
+ * Class description here.
  */
 class Calypsoify {
 
